@@ -1,42 +1,766 @@
-const socket = io('http://localhost:3001');
+/**
+ * SentinelGov Real-Time Connector v2.0
+ * ─────────────────────────────────────
+ * Transforms all static HTML views into live, real-time dashboards
+ * by connecting to the WebSocket telemetry server and dynamically
+ * updating every KPI, timestamp, gauge, log entry, and countdown.
+ */
 
-socket.on('connect', () => {
-    console.log('[SentinelGov Realtime] Connected to telemetry stream.');
-    
-    // Auto-update any system time elements
-    setInterval(() => {
-        const timeElements = document.querySelectorAll('p.font-mono, span.font-mono');
-        const now = new Date();
-        const timeString = now.toISOString().split('T')[1].split('.')[0] + ' UTC';
-        
-        timeElements.forEach(el => {
-            if (el.innerText.includes('UTC') || el.innerText.match(/^\d{2}:\d{2}:\d{2}$/)) {
-                el.innerText = timeString;
+(function () {
+    'use strict';
+
+    // ── CONFIG ──────────────────────────────────────────────
+    const WS_URL = 'http://localhost:3001';
+    let socket = null;
+    let telemetry = null;
+    let crisisActive = false;
+    let startTime = Date.now();
+
+    // ── UTILITY FUNCTIONS ───────────────────────────────────
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function utcNow() {
+        const d = new Date();
+        return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
+    }
+
+    function utcShort() {
+        const d = new Date();
+        return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+    }
+
+    function randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+    }
+
+    function randomInt(min, max) {
+        return Math.floor(randomBetween(min, max));
+    }
+
+    function lerp(current, target, speed) {
+        return current + (target - current) * speed;
+    }
+
+    function formatNumber(n) {
+        return n.toLocaleString('en-US');
+    }
+
+    // Smoothly animate a number change on an element
+    function animateValue(el, start, end, duration, formatter) {
+        const startTime = performance.now();
+        formatter = formatter || ((v) => Math.round(v).toString());
+        function tick(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+            const current = start + (end - start) * eased;
+            el.textContent = formatter(current);
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    }
+
+    // ── AGENT LOG GENERATOR ─────────────────────────────────
+    const agentNames = ['SENTINEL-01', 'RISK-ENGINE', 'SIM-CORE', 'RESPONSE-AI', 'RESOURCE-MGR', 'GOV-AUDIT', 'MED-BOT-12', 'SEC-UNIT-09', 'LOGISTICS-AI', 'DRONE-SWARM'];
+    const agentColors = {
+        'SENTINEL-01': 'text-primary', 'RISK-ENGINE': 'text-red-400', 'SIM-CORE': 'text-blue-400',
+        'RESPONSE-AI': 'text-emerald-400', 'RESOURCE-MGR': 'text-yellow-400', 'GOV-AUDIT': 'text-purple-400',
+        'MED-BOT-12': 'text-emerald-400', 'SEC-UNIT-09': 'text-red-400', 'LOGISTICS-AI': 'text-blue-400',
+        'DRONE-SWARM': 'text-orange-400'
+    };
+
+    const normalMessages = [
+        'Routine infrastructure scan complete. All sectors nominal.',
+        'Sensor array calibration verified. Accuracy: {pct}%.',
+        'Network topology refresh complete. {n} nodes active.',
+        'Drainage system capacity at {pct}%. Operating within parameters.',
+        'Traffic flow analysis: {n} vehicles/hour on primary corridors.',
+        'Weather pattern update received. No anomalies detected.',
+        'Bridge load sensors reporting normal. Stress index: {pct}%.',
+        'Population density scan: {n} civilians in monitored zones.',
+        'Power grid stability check passed. Load balance: {pct}%.',
+        'Communication relay latency: {n}ms. Within threshold.',
+        'Water level monitoring: {pct}% of flood threshold.',
+        'Emergency response unit standby confirmed. {n} units ready.',
+        'Predictive model recalibrated. Confidence: {pct}%.',
+        'Satellite imagery processing complete. Resolution optimal.',
+        'Seismic sensor array nominal. No tectonic activity detected.',
+    ];
+
+    const crisisMessages = [
+        'ALERT: Water level rising in Ward 12. Current: +{n}m above baseline.',
+        'WARNING: Structural stress detected on North Bridge. Index: {pct}%.',
+        'Flood propagation model updated. Spread rate: {n}m²/min.',
+        'Emergency evacuation route A-7 congestion at {pct}%. Rerouting.',
+        'Pump deployment unit Alpha: {pct}% operational capacity.',
+        'CRITICAL: Drainage overflow detected in Sector {n}.',
+        'Civilian movement tracking: {n} evacuees in transit.',
+        'Resource allocation conflict detected. Negotiating priorities.',
+        'Bridge closure protocol: {pct}% traffic diverted successfully.',
+        'Medical response team Charlie deployed to Zone {n}.',
+        'Power grid sector {n} switching to emergency reserves.',
+        'Communication blackout risk in Ward {n}. Deploying relay drones.',
+        'Shelter capacity at {pct}%. Requesting additional facilities.',
+        'Storm surge prediction updated. ETA: {n} minutes.',
+        'Infrastructure damage estimate: ${n}M and rising.',
+    ];
+
+    function generateLogMessage() {
+        const messages = crisisActive ? crisisMessages : normalMessages;
+        let msg = messages[randomInt(0, messages.length)];
+        msg = msg.replace('{pct}', randomInt(45, 99).toString());
+        msg = msg.replace('{n}', randomInt(2, 450).toString());
+        return msg;
+    }
+
+    function generateAgentLog() {
+        const agent = agentNames[randomInt(0, agentNames.length)];
+        return {
+            agent,
+            color: agentColors[agent] || 'text-primary',
+            message: generateLogMessage(),
+            time: utcShort(),
+            severity: crisisActive ? (Math.random() > 0.5 ? 'critical' : 'warning') : 'info',
+        };
+    }
+
+    // ── LIVE CLOCK UPDATER ──────────────────────────────────
+    function updateAllClocks() {
+        // Strategy: find elements containing time patterns and update them
+        const timeStr = utcNow();
+        const timeShort = utcShort();
+
+        // Update elements with UTC time pattern
+        document.querySelectorAll('p, span, div, h4').forEach(el => {
+            if (el.children.length > 0) return; // skip parent containers
+            const text = el.textContent.trim();
+
+            // Match "HH:MM:SS UTC" format
+            if (/^\d{2}:\d{2}:\d{2}\s*UTC$/.test(text)) {
+                el.textContent = timeStr;
             }
         });
-    }, 1000);
-});
+    }
 
-socket.on('telemetry:update', (data) => {
-    // Dynamically update latency if found
-    const allSpans = document.querySelectorAll('span, div');
-    allSpans.forEach(el => {
-        // Update latency meters
-        if (el.innerText && el.innerText.match(/^\d+ms$/) && !el.classList.contains('do-not-update')) {
-            el.innerText = data.networkLatency + 'ms';
+    // ── KPI FLUCTUATION ENGINE ──────────────────────────────
+    // Tracks current values so we can smoothly animate between them
+    const kpiState = {
+        threatIndex: 75,
+        popAffected: 12405,
+        responseUnits: 48,
+        totalUnits: 52,
+        estDamage: 4.2,
+        windSpeed: 45,
+        bridgeLock: 72,
+        resourceCap: 88.4,
+        uptime: 99.998,
+        mitigationSuccess: 68.2,
+        projectedImprovement: 82,
+        evacuationCoverage: 100,
+        structuralGain: 14.2,
+        consensusRate: 98.4,
+    };
+
+    function updateKPIs() {
+        if (!telemetry) return;
+
+        // Calculate new values based on telemetry + small random deltas
+        const base = telemetry.sensorReadings || {};
+        const crisis = crisisActive;
+
+        kpiState.threatIndex = crisis
+            ? Math.min(95, lerp(kpiState.threatIndex, 60 + base.rainfall * 0.3, 0.1))
+            : Math.max(5, lerp(kpiState.threatIndex, 10 + Math.random() * 15, 0.1));
+
+        kpiState.popAffected = crisis
+            ? Math.round(lerp(kpiState.popAffected, 10000 + telemetry.activeConnections * 30, 0.08))
+            : Math.round(lerp(kpiState.popAffected, 800 + telemetry.activeConnections * 5, 0.05));
+
+        kpiState.responseUnits = randomInt(crisis ? 40 : 46, crisis ? 52 : 52);
+        kpiState.estDamage = crisis
+            ? Math.round(lerp(kpiState.estDamage * 10, 30 + Math.random() * 25, 0.1)) / 10
+            : Math.round(lerp(kpiState.estDamage * 10, 5 + Math.random() * 10, 0.1)) / 10;
+
+        kpiState.windSpeed = Math.round(base.windSpeed || (8 + Math.random() * 12));
+        kpiState.bridgeLock = Math.round(lerp(kpiState.bridgeLock, crisis ? 60 + Math.random() * 30 : 70 + Math.random() * 20, 0.15));
+        kpiState.resourceCap = Math.round(lerp(kpiState.resourceCap * 10, crisis ? 700 + Math.random() * 200 : 850 + Math.random() * 100, 0.1)) / 10;
+        kpiState.uptime = crisis ? (99.9 + Math.random() * 0.09).toFixed(3) : (99.99 + Math.random() * 0.009).toFixed(3);
+        kpiState.mitigationSuccess = Math.round(lerp(kpiState.mitigationSuccess * 10, crisis ? 550 + Math.random() * 200 : 650 + Math.random() * 200, 0.1)) / 10;
+        kpiState.projectedImprovement = Math.round(lerp(kpiState.projectedImprovement, crisis ? 70 + Math.random() * 20 : 80 + Math.random() * 15, 0.1));
+        kpiState.structuralGain = Math.round(lerp(kpiState.structuralGain * 10, 100 + Math.random() * 80, 0.1)) / 10;
+        kpiState.consensusRate = Math.round(lerp(kpiState.consensusRate * 10, 960 + Math.random() * 30, 0.05)) / 10;
+    }
+
+    // ── PAGE-SPECIFIC UPDATERS ──────────────────────────────
+
+    // -- Control Center Dashboard --
+    function updateDashboard() {
+        // Threat Index gauge
+        const threatText = document.querySelector('.text-4xl.font-display.font-bold.text-white');
+        if (threatText && threatText.textContent.includes('%')) {
+            const newVal = Math.round(kpiState.threatIndex);
+            threatText.textContent = newVal + '%';
+
+            // Update gauge SVG arc
+            const gaugeCircle = document.querySelector('circle[stroke-dashoffset]') ||
+                document.querySelector('circle[stroke="#ff003c"]');
+            if (gaugeCircle) {
+                const circumference = 440;
+                const offset = circumference - (circumference * newVal / 100);
+                gaugeCircle.setAttribute('stroke-dashoffset', offset.toString());
+
+                // Change color based on severity
+                if (newVal > 70) {
+                    gaugeCircle.setAttribute('stroke', '#ff003c');
+                } else if (newVal > 40) {
+                    gaugeCircle.setAttribute('stroke', '#f59e0b');
+                } else {
+                    gaugeCircle.setAttribute('stroke', '#00f0ff');
+                }
+            }
+
+            // Update severity label
+            const severityLabel = threatText.parentElement?.querySelector('.text-xs');
+            if (severityLabel) {
+                if (newVal > 70) {
+                    severityLabel.textContent = 'CRITICAL';
+                    severityLabel.className = 'text-xs text-red-400 font-bold uppercase tracking-wider animate-pulse';
+                } else if (newVal > 40) {
+                    severityLabel.textContent = 'ELEVATED';
+                    severityLabel.className = 'text-xs text-yellow-400 font-bold uppercase tracking-wider';
+                } else {
+                    severityLabel.textContent = 'NOMINAL';
+                    severityLabel.className = 'text-xs text-primary font-bold uppercase tracking-wider';
+                }
+            }
         }
-        // Update active connections/agents (heuristic finding matching numbers)
-        if (el.innerText && el.innerText.includes('14,203 Units')) {
-            el.innerHTML = (14000 + data.activeConnections) + ' Units';
+
+        // Wind Speed
+        document.querySelectorAll('span').forEach(el => {
+            if (el.textContent.match(/^\d+ km\/h$/)) {
+                el.textContent = kpiState.windSpeed + ' km/h';
+            }
+        });
+
+        // Water Level status
+        document.querySelectorAll('span').forEach(el => {
+            if (el.textContent === 'Rising' || el.textContent === 'Stable' || el.textContent === 'Falling') {
+                el.textContent = crisisActive ? 'Rising' : (Math.random() > 0.5 ? 'Stable' : 'Falling');
+                el.className = crisisActive ? 'text-red-400' : 'text-primary';
+            }
+        });
+
+        // Footer KPIs
+        const kpiCards = document.querySelectorAll('footer h4');
+        kpiCards.forEach(h4 => {
+            const text = h4.textContent.trim();
+            if (text.match(/^[\d,]+$/) && parseInt(text.replace(/,/g, '')) > 1000) {
+                // Pop. Affected
+                h4.textContent = formatNumber(Math.round(kpiState.popAffected));
+            } else if (text.match(/^\d+\/\d+$/)) {
+                // Response Units
+                h4.textContent = kpiState.responseUnits + '/' + kpiState.totalUnits;
+            } else if (text.match(/^\$[\d.]+M$/)) {
+                // Est. Damage
+                h4.textContent = '$' + kpiState.estDamage.toFixed(1) + 'M';
+            }
+        });
+
+        // Time to Critical countdown
+        document.querySelectorAll('footer h4').forEach(h4 => {
+            if (h4.textContent.trim().match(/^\d{2}:\d{2}:\d{2}$/)) {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const totalSeconds = crisisActive ? Math.max(0, 8040 - elapsed) : Math.max(0, 8040 - elapsed);
+                const hrs = pad(Math.floor(totalSeconds / 3600));
+                const mins = pad(Math.floor((totalSeconds % 3600) / 60));
+                const secs = pad(totalSeconds % 60);
+                h4.textContent = `${hrs}:${mins}:${secs}`;
+            }
+        });
+
+        // Percentage changes in footer
+        document.querySelectorAll('footer p').forEach(p => {
+            if (p.textContent.includes('+') && p.textContent.includes('%')) {
+                const delta = crisisActive ? (3 + Math.random() * 5).toFixed(1) : (0.1 + Math.random() * 2).toFixed(1);
+                const icon = p.querySelector('.material-icons-round');
+                if (icon) {
+                    p.innerHTML = '';
+                    p.appendChild(icon);
+                    p.append(crisisActive ? ` +${delta}%` : ` +${delta}%`);
+                }
+            }
+        });
+
+        // Active % in footer
+        document.querySelectorAll('footer p').forEach(p => {
+            if (p.textContent.includes('Active')) {
+                const pct = Math.round(kpiState.responseUnits / kpiState.totalUnits * 100);
+                const icon = p.querySelector('.material-icons-round');
+                if (icon) {
+                    p.innerHTML = '';
+                    p.appendChild(icon);
+                    p.append(` ${pct}% Active`);
+                }
+            }
+        });
+
+        // Latency bars animation
+        const latencyBars = document.querySelectorAll('.bg-primary\\/20, .bg-primary\\/30, .bg-primary\\/40, .bg-primary\\/60, .bg-primary\\/80');
+        latencyBars.forEach(bar => {
+            if (bar.parentElement && bar.parentElement.classList.contains('flex')) {
+                const h = randomInt(20, 95);
+                bar.style.height = h + '%';
+                bar.style.transition = 'height 1.5s ease-out';
+            }
+        });
+
+        // Network latency text
+        document.querySelectorAll('span').forEach(el => {
+            if (el.textContent.match(/^\d+ms$/) && el.classList.contains('text-primary')) {
+                el.textContent = (telemetry ? telemetry.networkLatency : randomInt(8, 22)) + 'ms';
+            }
+        });
+
+        // Flood barrier tooltip
+        document.querySelectorAll('strong').forEach(el => {
+            if (el.textContent.includes('FLOOD BARRIER')) {
+                const parent = el.parentElement;
+                if (parent) {
+                    const waterLvl = crisisActive ? (3 + Math.random() * 3).toFixed(1) : (0.5 + Math.random() * 1).toFixed(1);
+                    parent.innerHTML = `<strong class="block text-primary mb-1">FLOOD BARRIER 4A</strong>Status: ${crisisActive ? 'Critical Load' : 'Normal'}<br/>Water Lvl: +${waterLvl}m`;
+                }
+            }
+        });
+
+        // Civilian cluster tooltip
+        document.querySelectorAll('strong').forEach(el => {
+            if (el.textContent.includes('CIVILIAN CLUSTER')) {
+                const parent = el.parentElement;
+                if (parent) {
+                    const count = crisisActive ? randomInt(300, 600) : randomInt(50, 150);
+                    parent.innerHTML = `<strong class="block text-red-500 mb-1">CIVILIAN CLUSTER</strong>${crisisActive ? 'Evacuation Required' : 'Monitoring'}<br/>Count: ~${count}`;
+                }
+            }
+        });
+    }
+
+    // -- Execution Command View --
+    function updateExecution() {
+        // Mitigation success
+        document.querySelectorAll('span').forEach(el => {
+            if (el.textContent.match(/^\d+\.\d+%$/) && el.closest('.text-xl')) {
+                el.textContent = kpiState.mitigationSuccess.toFixed(1) + '%';
+            }
+        });
+
+        // Progress bars
+        document.querySelectorAll('div').forEach(el => {
+            if (el.style.width || el.className.includes('w-[')) {
+                const match = el.className.match(/w-\[(\d+)%\]/);
+                if (match && el.classList.contains('bg-primary') || el.classList.contains('bg-primary/40')) {
+                    const base = parseInt(match?.[1] || '50');
+                    const delta = randomInt(-3, 3);
+                    const newW = Math.max(10, Math.min(98, base + delta));
+                    el.style.width = newW + '%';
+                    el.style.transition = 'width 2s ease-out';
+                }
+            }
+        });
+
+        // Bridge Access Lock percentage text
+        document.querySelectorAll('p').forEach(el => {
+            if (el.textContent.includes('Bridge Access Lock:')) {
+                el.textContent = 'Bridge Access Lock: ' + kpiState.bridgeLock + '%';
+            }
+        });
+
+        // Resource capacity
+        document.querySelectorAll('span').forEach(el => {
+            if (el.textContent.match(/[\d.]+% CAP/)) {
+                el.textContent = kpiState.resourceCap.toFixed(1) + '% CAP';
+            }
+        });
+
+        // Uptime
+        document.querySelectorAll('span').forEach(el => {
+            if (el.textContent.match(/^99\.\d+%$/)) {
+                el.textContent = kpiState.uptime + '%';
+            }
+        });
+
+        // Active status
+        document.querySelectorAll('p').forEach(el => {
+            if (el.textContent.match(/^Active \d+%$/)) {
+                el.textContent = 'Active ' + (crisisActive ? randomInt(85, 100) : 100) + '%';
+            }
+        });
+
+        // Timeline timestamps to relative times
+        document.querySelectorAll('span').forEach(el => {
+            if (el.textContent.match(/^\d{2}:\d{2}:\d{2} UTC$/) && el.classList.contains('text-primary')) {
+                el.textContent = utcNow();
+            }
+        });
+    }
+
+    // -- Authorization Portal --
+    function updateAuthorization() {
+        // Countdown timer
+        document.querySelectorAll('p').forEach(el => {
+            if (el.textContent.match(/^\d{2}:\d{2}:\d{2}:\d{2}$/)) {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const total = Math.max(0, 152538 - elapsed); // ~42 hours
+                const days = pad(Math.floor(total / 86400));
+                const hrs = pad(Math.floor((total % 86400) / 3600));
+                const mins = pad(Math.floor((total % 3600) / 60));
+                const secs = pad(total % 60);
+                el.textContent = `${days}:${hrs}:${mins}:${secs}`;
+            }
+        });
+
+        // Projected improvement percentage
+        document.querySelectorAll('span').forEach(el => {
+            if (el.textContent.match(/^\d+%$/) && el.classList.contains('text-2xl')) {
+                el.textContent = kpiState.projectedImprovement + '%';
+                // Update matching progress bar
+                const container = el.closest('div');
+                if (container) {
+                    const bar = container.querySelector('.bg-primary.rounded-full');
+                    if (bar) {
+                        bar.style.width = kpiState.projectedImprovement + '%';
+                        bar.style.transition = 'width 2s ease-out';
+                    }
+                }
+            }
+        });
+
+        // Structural gain
+        document.querySelectorAll('p').forEach(el => {
+            if (el.textContent.includes('Structural')) {
+                const gain = '+' + kpiState.structuralGain.toFixed(1) + '% Structural';
+                const remaining = el.textContent.split('Structural')[1] || '';
+                el.textContent = gain + remaining;
+            }
+        });
+    }
+
+    // -- Reasoning Modal --
+    function updateReasoning() {
+        // Consensus success rate
+        document.querySelectorAll('span, div, p').forEach(el => {
+            if (el.textContent.includes('98.') && el.textContent.includes('success rate')) {
+                el.innerHTML = el.innerHTML.replace(/\d{2}\.\d%/g, kpiState.consensusRate.toFixed(1) + '%');
+            }
+        });
+
+        // Progress circle text
+        document.querySelectorAll('text, tspan').forEach(el => {
+            if (el.textContent.match(/^\d{2}\.\d%$/)) {
+                el.textContent = kpiState.consensusRate.toFixed(1) + '%';
+            }
+        });
+    }
+
+    // -- Agent Decision Logic --
+    function updateDecisionLogic() {
+        // Fluctuate probability values shown in the decision tree
+        document.querySelectorAll('span, p, div').forEach(el => {
+            const text = el.textContent.trim();
+            if (text.match(/^0\.\d{2}$/) && el.children.length === 0) {
+                const current = parseFloat(text);
+                const delta = (Math.random() - 0.5) * 0.04;
+                const newVal = Math.max(0.01, Math.min(0.99, current + delta));
+                el.textContent = newVal.toFixed(2);
+            }
+        });
+    }
+
+    // ── DYNAMIC AGENT LOG INJECTION ─────────────────────────
+    let logContainer = null;
+    let logInjectionInterval = null;
+
+    function findLogContainer() {
+        // Look for scrollable log containers
+        const candidates = document.querySelectorAll('.overflow-y-auto');
+        for (const c of candidates) {
+            if (c.querySelectorAll('[class*="rounded"][class*="border"]').length >= 2) {
+                return c;
+            }
         }
-    });
-});
+        return null;
+    }
 
-socket.on('crisis:acknowledged', () => {
-    // If a crisis triggers, pulse the UI red
-    document.body.style.boxShadow = "inset 0 0 100px rgba(255, 0, 0, 0.2)";
-});
+    function injectAgentLog() {
+        if (!logContainer) return;
+        const log = generateAgentLog();
 
-socket.on('crisis:resolved', () => {
-    document.body.style.boxShadow = "none";
-});
+        const logEl = document.createElement('div');
+        logEl.className = `p-3 rounded ${log.severity === 'critical' ? 'bg-red-900/10 border border-red-500/30' : 'bg-slate-800/50 border border-slate-700/50 hover:border-primary/50'} transition-colors group`;
+        logEl.style.opacity = '0';
+        logEl.style.transform = 'translateY(-10px)';
+        logEl.style.transition = 'all 0.5s ease-out';
+
+        logEl.innerHTML = `
+            <div class="flex justify-between mb-1">
+                <span class="${log.color} font-bold">${log.agent}</span>
+                <span class="text-slate-500">${log.time}</span>
+            </div>
+            <p class="text-slate-300 group-hover:text-white transition-colors">${log.message}</p>
+            ${log.severity === 'critical' ? '' : `
+            <div class="mt-2 w-full bg-slate-700 h-1 rounded-full overflow-hidden">
+                <div class="bg-primary h-full animate-pulse" style="width: ${randomInt(30, 100)}%"></div>
+            </div>`}
+        `;
+
+        // Insert at top
+        logContainer.insertBefore(logEl, logContainer.firstChild);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            logEl.style.opacity = '1';
+            logEl.style.transform = 'translateY(0)';
+        });
+
+        // Remove old entries to prevent memory buildup
+        while (logContainer.children.length > 15) {
+            const last = logContainer.lastElementChild;
+            if (last) {
+                last.style.opacity = '0';
+                setTimeout(() => last.remove(), 300);
+            }
+        }
+
+        // Update log count in header if present
+        document.querySelectorAll('span').forEach(el => {
+            if (el.textContent === 'LIVE') {
+                const header = el.closest('.flex')?.querySelector('h2');
+                if (header) {
+                    const count = logContainer.children.length;
+                    header.innerHTML = header.innerHTML.replace(/AGENT LOG.*$/, `AGENT LOG <span class="text-xs text-slate-500 font-mono ml-2">${count} entries</span>`);
+                }
+            }
+        });
+    }
+
+    // ── TIMELINE UPDATER (Execution View) ───────────────────
+    function updateTimelineEntries() {
+        // Find timeline timestamp spans and make them relative to now
+        let timelineItems = document.querySelectorAll('.text-\\[10px\\].text-primary.font-mono');
+        if (timelineItems.length === 0) {
+            timelineItems = document.querySelectorAll('span[class*="font-mono"][class*="text-primary"]');
+        }
+
+        const now = new Date();
+        timelineItems.forEach((el, i) => {
+            if (el.textContent.match(/\d{2}:\d{2}:\d{2}/)) {
+                const offset = i * randomInt(1, 3);
+                const t = new Date(now.getTime() - offset * 1000);
+                el.textContent = `${pad(t.getUTCHours())}:${pad(t.getUTCMinutes())}:${pad(t.getUTCSeconds())} UTC`;
+            }
+        });
+    }
+
+    // ── AGENT LOG TIMESTAMP UPDATER (Dashboard) ─────────────
+    function updateLogTimestamps() {
+        // Update timestamps inside the agent log to be relative to current time
+        const logTimestamps = document.querySelectorAll('.text-slate-500');
+        const now = new Date();
+        logTimestamps.forEach((el, i) => {
+            if (el.textContent.match(/^\d{2}:\d{2}:\d{2}$/)) {
+                const offset = (i + 1) * randomInt(8, 30);
+                const t = new Date(now.getTime() - offset * 1000);
+                el.textContent = `${pad(t.getUTCHours())}:${pad(t.getUTCMinutes())}:${pad(t.getUTCSeconds())}`;
+            }
+        });
+    }
+
+    // ── CRISIS PULSE OVERLAY ────────────────────────────────
+    let pulseOverlay = null;
+
+    function createCrisisOverlay() {
+        pulseOverlay = document.createElement('div');
+        pulseOverlay.id = 'sentinel-crisis-overlay';
+        pulseOverlay.style.cssText = `
+            position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+            box-shadow: inset 0 0 120px rgba(255, 0, 60, 0);
+            transition: box-shadow 2s ease-in-out;
+        `;
+        document.body.appendChild(pulseOverlay);
+    }
+
+    function updateCrisisOverlay() {
+        if (!pulseOverlay) return;
+        if (crisisActive) {
+            const intensity = 0.15 + Math.sin(Date.now() / 1000) * 0.08;
+            pulseOverlay.style.boxShadow = `inset 0 0 120px rgba(255, 0, 60, ${intensity})`;
+        } else {
+            pulseOverlay.style.boxShadow = 'inset 0 0 120px rgba(255, 0, 60, 0)';
+        }
+    }
+
+    // ── CONNECTION STATUS INDICATOR ─────────────────────────
+    function createConnectionIndicator() {
+        const indicator = document.createElement('div');
+        indicator.id = 'sentinel-ws-status';
+        indicator.style.cssText = `
+            position: fixed; bottom: 12px; right: 12px; z-index: 10000;
+            display: flex; align-items: center; gap: 6px;
+            padding: 4px 10px; border-radius: 6px;
+            background: rgba(5, 11, 20, 0.9); border: 1px solid rgba(0, 240, 255, 0.2);
+            font-family: monospace; font-size: 10px; color: #64748b;
+            backdrop-filter: blur(8px);
+        `;
+        indicator.innerHTML = `
+            <span id="ws-dot" style="width:6px;height:6px;border-radius:50%;background:#f59e0b;"></span>
+            <span id="ws-text">CONNECTING</span>
+        `;
+        document.body.appendChild(indicator);
+    }
+
+    function updateConnectionStatus(connected) {
+        const dot = document.getElementById('ws-dot');
+        const text = document.getElementById('ws-text');
+        if (dot && text) {
+            dot.style.background = connected ? '#00f0ff' : '#ef4444';
+            text.textContent = connected ? 'TELEMETRY LIVE' : 'RECONNECTING';
+            text.style.color = connected ? '#00f0ff' : '#ef4444';
+        }
+    }
+
+    // ── MAIN UPDATE LOOP ────────────────────────────────────
+    function updateAll() {
+        updateAllClocks();
+        updateKPIs();
+        updateCrisisOverlay();
+
+        // Detect which page we're on and apply specific updates
+        const title = document.title.toLowerCase();
+        const url = window.location.pathname.toLowerCase();
+
+        if (url.includes('control_center_dashboard') || title.includes('dashboard')) {
+            updateDashboard();
+            updateLogTimestamps();
+        }
+
+        if (url.includes('execution_command') || title.includes('execution')) {
+            updateExecution();
+            updateTimelineEntries();
+        }
+
+        if (url.includes('critical_authorization') || title.includes('authorization')) {
+            updateAuthorization();
+        }
+
+        if (url.includes('agent_reasoning') || title.includes('reasoning')) {
+            updateReasoning();
+        }
+
+        if (url.includes('agent_decision') || title.includes('decision')) {
+            updateDecisionLogic();
+        }
+    }
+
+    // ── INITIALIZE ──────────────────────────────────────────
+    function init() {
+        console.log('[SentinelGov Realtime v2.0] Initializing real-time engine...');
+
+        createCrisisOverlay();
+        createConnectionIndicator();
+
+        // Find log container for dynamic injection
+        logContainer = findLogContainer();
+
+        // Connect to WebSocket
+        try {
+            socket = io(WS_URL, {
+                reconnectionAttempts: 10,
+                reconnectionDelay: 2000,
+                timeout: 5000,
+            });
+
+            socket.on('connect', () => {
+                console.log('[SentinelGov Realtime v2.0] Connected to telemetry stream.');
+                updateConnectionStatus(true);
+            });
+
+            socket.on('disconnect', () => {
+                console.log('[SentinelGov Realtime v2.0] Disconnected from telemetry.');
+                updateConnectionStatus(false);
+            });
+
+            socket.on('connect_error', () => {
+                updateConnectionStatus(false);
+            });
+
+            socket.on('telemetry:update', (data) => {
+                telemetry = data;
+            });
+
+            socket.on('crisis:acknowledged', () => {
+                crisisActive = true;
+                console.log('[SentinelGov Realtime v2.0] Crisis mode activated.');
+            });
+
+            socket.on('crisis:resolved', () => {
+                crisisActive = false;
+                console.log('[SentinelGov Realtime v2.0] Crisis resolved.');
+            });
+
+            socket.on('system:handshake', (data) => {
+                console.log('[SentinelGov Realtime v2.0] Handshake:', data.serverId, 'v' + data.version);
+            });
+
+        } catch (err) {
+            console.warn('[SentinelGov Realtime v2.0] WebSocket unavailable, running in offline mode.');
+            updateConnectionStatus(false);
+
+            // Generate synthetic telemetry for offline mode
+            setInterval(() => {
+                telemetry = {
+                    networkLatency: randomInt(8, 20),
+                    cpuUsage: randomInt(15, 40),
+                    activeConnections: randomInt(120, 160),
+                    sensorReadings: {
+                        rainfall: randomBetween(10, 20),
+                        windSpeed: randomBetween(8, 20),
+                        riverLevel: randomBetween(1.5, 2.5),
+                        temperature: randomBetween(22, 27),
+                    }
+                };
+            }, 2000);
+        }
+
+        // Main update loop — runs every 2 seconds
+        setInterval(updateAll, 2000);
+
+        // Fast clock update — every second
+        setInterval(updateAllClocks, 1000);
+
+        // Agent log injection — new log entry every 3–6 seconds
+        if (logContainer) {
+            logInjectionInterval = setInterval(() => {
+                injectAgentLog();
+            }, randomInt(3000, 6000));
+
+            // Restart with new random interval periodically
+            setInterval(() => {
+                if (logInjectionInterval) clearInterval(logInjectionInterval);
+                logInjectionInterval = setInterval(() => {
+                    injectAgentLog();
+                }, randomInt(3000, 6000));
+            }, 15000);
+        }
+
+        // Initial update
+        setTimeout(updateAll, 500);
+
+        console.log('[SentinelGov Realtime v2.0] Engine running. All systems live.');
+    }
+
+    // Wait for DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
