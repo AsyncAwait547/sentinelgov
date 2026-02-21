@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #00f0ff;
+  --color-accent: #ff003c;
+  --color-background-dark: #050b14;
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Rajdhani', sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: #050b14;
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background: rgba(8, 16, 28, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 240, 255, 0.08);
+  }
+
+  .shadow-neon {
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.3), 0 0 16px rgba(0, 240, 255, 0.15);
+  }
+
+  .shadow-neon-red {
+    box-shadow: 0 0 8px rgba(255, 0, 60, 0.3), 0 0 16px rgba(255, 0, 60, 0.15);
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00f0ff;
+}
+
+/* React Flow overrides */
+.react-flow__node {
+  border-radius: 12px;
+}
+
+.react-flow__edge-path {
+  stroke-width: 2 !important;
+}
+
+.react-flow__controls {
+  background: rgba(8, 16, 28, 0.8) !important;
+  border: 1px solid rgba(0, 240, 255, 0.1) !important;
+  border-radius: 8px !important;
+}
+
+.react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.05) !important;
+}
+
+.react-flow__controls-button svg {
+  fill: #00f0ff !important;
+}

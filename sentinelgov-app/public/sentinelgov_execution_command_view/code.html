@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SentinelGov Execution Command View</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#06e4f9",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#050b0c",
+                        "panel-dark": "#0f2123",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: "Space Grotesk", sans-serif;
+            background-color: #050b0c;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(6, 228, 249, 0.05) 50%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .hologram-grid {
+            background-image: radial-gradient(circle at 2px 2px, rgba(6, 228, 249, 0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 overflow-hidden h-screen flex flex-col">
+    <!-- Top Navigation Bar -->
+    <header
+        class="flex items-center justify-between border-b border-primary/20 px-6 py-3 bg-panel-dark/80 backdrop-blur-md z-50">
+        <a href="/" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
+            <div class="text-primary size-8 flex items-center justify-center">
+                <span class="material-symbols-outlined text-3xl">shield_locked</span>
+            </div>
+            <div class="flex flex-col">
+                <h2 class="text-primary text-lg font-bold leading-tight tracking-wider uppercase">SENTINELGOV: COMMAND
+                    EXECUTION</h2>
+                <p class="text-[10px] text-primary/60 tracking-[0.2em]">MISSION CODE: NEON VIGIL // OP CENTER ALPHA</p>
+            </div>
+        </a>
+        <div class="flex items-center gap-8">
+            <div class="hidden md:flex items-center gap-6">
+                <a class="text-primary/70 hover:text-primary text-xs font-bold tracking-widest transition-colors uppercase"
+                    href="#">Network Map</a>
+                <a class="text-primary/70 hover:text-primary text-xs font-bold tracking-widest transition-colors uppercase"
+                    href="#">Fleet Status</a>
+                <a class="text-primary/70 hover:text-primary text-xs font-bold tracking-widest transition-colors uppercase"
+                    href="#">Intel Feed</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex flex-col items-end">
+                    <span class="text-primary text-xs font-bold">08:14:22 UTC</span>
+                    <span class="text-red-500 text-[10px] font-bold animate-pulse">LEVEL: TOP SECRET</span>
+                </div>
+                <div class="h-10 w-[1px] bg-primary/20 mx-2"></div>
+                <div class="bg-primary/20 border border-primary/40 rounded-full p-1">
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8"
+                        data-alt="User profile avatar silhouette"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA6i7XfYYkzrudyLGMBTijCp8P3w1fN7WgOvo4ZZlWGuK3byyCSuXwCIbHZ_H0M4v-2GFztH-vYdlxMnAWPbeWEC65mctlbd8bsf4r83YiEfl0ilqB548Ogx7AhzRTzXCZ9S99UnTeVCQsJrrasZ6hMOU56i5WNtLQhbhlz-K9BC1TkYEtaV6vRFbk5es0ZcKDUia4x0nRpZ9G9CrAvTxIlYzqIu-hRvEDOnjrrzgOzStV49pKdaIKKQ1VQKugGS7EdqFbBNr38nfcY");'>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Main Command Workspace -->
+    <main class="flex-1 flex overflow-hidden relative">
+        <!-- Background Holographic Elements -->
+        <div class="absolute inset-0 hologram-grid opacity-30 pointer-events-none"></div>
+        <div
+            class="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-background-dark pointer-events-none">
+        </div>
+        <!-- Left Panel: Chain of Custody -->
+        <aside class="w-80 flex flex-col border-r border-primary/10 bg-panel-dark/40 backdrop-blur-xl z-20">
+            <div class="p-4 border-b border-primary/10 bg-primary/5">
+                <h3 class="text-primary text-xs font-bold tracking-widest uppercase flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">history_edu</span> Confirmed Chain of Custody
+                </h3>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
+                <!-- Log Entry 1 -->
+                <div class="relative pl-6 pb-6 border-l border-primary/20">
+                    <div class="absolute -left-[5px] top-0 size-2.5 rounded-full bg-primary shadow-[0_0_8px_#06e4f9]">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[10px] text-primary font-mono opacity-70 tracking-tighter">08:00:12 UTC</span>
+                        <p class="text-sm font-bold text-slate-100">Human Authorization Received</p>
+                        <p class="text-xs text-slate-400">Commander ID: <span class="text-primary">77-ALPHA-CMDR</span>
+                        </p>
+                        <div
+                            class="mt-2 flex items-center gap-2 px-2 py-1 bg-primary/10 rounded border border-primary/20 w-fit">
+                            <span class="material-symbols-outlined text-xs text-primary">verified</span>
+                            <span class="text-[10px] font-mono text-primary">SIG: 0x82...F491</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Log Entry 2 -->
+                <div class="relative pl-6 pb-6 border-l border-primary/20">
+                    <div class="absolute -left-[5px] top-0 size-2.5 rounded-full bg-primary shadow-[0_0_8px_#06e4f9]">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[10px] text-primary font-mono opacity-70 tracking-tighter">08:00:13 UTC</span>
+                        <p class="text-sm font-bold text-slate-100">Neural Key Validated</p>
+                        <p class="text-xs text-slate-400">256-bit AES Handshake Complete</p>
+                        <p class="text-[10px] font-mono text-slate-500 truncate">SHA256:
+                            e3b0c44298fc1c149afbf4c8996fb...</p>
+                    </div>
+                </div>
+                <!-- Log Entry 3 -->
+                <div class="relative pl-6 pb-6 border-l border-primary/20">
+                    <div class="absolute -left-[5px] top-0 size-2.5 rounded-full bg-primary shadow-[0_0_8px_#06e4f9]">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[10px] text-primary font-mono opacity-70 tracking-tighter">08:00:15 UTC</span>
+                        <p class="text-sm font-bold text-slate-100">Sentinel Orchestrator Sync</p>
+                        <p class="text-xs text-slate-400">Agent Handshake Established</p>
+                        <div
+                            class="mt-2 flex items-center gap-2 px-2 py-1 bg-primary/10 rounded border border-primary/20 w-fit">
+                            <span class="material-symbols-outlined text-xs text-primary">smart_toy</span>
+                            <span class="text-[10px] font-mono text-primary">AI-AUTH: ACTIVE</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Active Deployment Entry -->
+                <div class="relative pl-6">
+                    <div class="absolute -left-[5px] top-0 size-2.5 rounded-full bg-primary animate-ping"></div>
+                    <div class="absolute -left-[5px] top-0 size-2.5 rounded-full bg-primary"></div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[10px] text-primary font-mono tracking-tighter">08:14:10 UTC</span>
+                        <p class="text-sm font-bold text-primary">Grid Deployment Active</p>
+                        <p class="text-xs text-slate-400 italic">Streaming transmission to nodes...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 mt-auto border-t border-primary/10">
+                <a href="/sentinelgov_control_center_dashboard/code.html"
+                    class="w-full py-3 bg-red-600/20 hover:bg-red-600/40 border border-red-600/50 text-red-500 text-xs font-bold tracking-[0.2em] rounded transition-all uppercase flex items-center justify-center gap-2 text-center cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">cancel</span> Abort Sequence
+                </a>
+            </div>
+        </aside>
+        <!-- Center Area: Holographic Map Visualization -->
+        <section class="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
+            <!-- Active State Banner -->
+            <div class="absolute top-10 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2">
+                <div
+                    class="flex items-center gap-4 bg-background-dark/80 border border-primary/30 px-8 py-3 rounded-full backdrop-blur-md shadow-[0_0_30px_rgba(6,228,249,0.2)]">
+                    <div class="size-3 bg-primary rounded-full animate-pulse shadow-[0_0_10px_#06e4f9]"></div>
+                    <h1 class="text-white text-3xl font-bold tracking-[0.3em] uppercase">Execution Active</h1>
+                    <div class="size-3 bg-primary rounded-full animate-pulse shadow-[0_0_10px_#06e4f9]"></div>
+                </div>
+                <p
+                    class="text-primary font-mono text-xs tracking-widest bg-primary/10 px-4 py-1 rounded border border-primary/20">
+                    NEURAL LINK ESTABLISHED // FULL COMMAND OVERRIDE</p>
+            </div>
+            <!-- The City Grid Visualization -->
+            <div class="w-full h-full flex items-center justify-center pointer-events-none relative scale-110">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <!-- SVG City Grid Mockup -->
+                    <svg class="w-full h-full stroke-primary/30 fill-none overflow-visible" viewbox="0 0 1000 600">
+                        <!-- Simulated City Blocks -->
+                        <path d="M100,100 L900,100 L900,500 L100,500 Z" stroke-width="0.5"></path>
+                        <path
+                            d="M200,100 L200,500 M300,100 L300,500 M400,100 L400,500 M500,100 L500,500 M600,100 L600,500 M700,100 L700,500 M800,100 L800,500"
+                            stroke-width="0.5"></path>
+                        <path d="M100,200 L900,200 M100,300 L900,300 M100,400 L900,400" stroke-width="0.5"></path>
+                        <!-- Pulse Transmission Lines -->
+                        <g class="transmission-lines">
+                            <line stroke="#06e4f9" stroke-dasharray="10 5" stroke-width="2" x1="500" x2="200" y1="300"
+                                y2="100"></line>
+                            <line stroke="#06e4f9" stroke-dasharray="10 5" stroke-width="2" x1="500" x2="800" y1="300"
+                                y2="400"></line>
+                            <line stroke="#06e4f9" stroke-dasharray="10 5" stroke-width="2" x1="500" x2="300" y1="300"
+                                y2="450"></line>
+                            <line stroke="#06e4f9" stroke-dasharray="10 5" stroke-width="2" x1="500" x2="700" y1="300"
+                                y2="150"></line>
+                        </g>
+                        <!-- Agent Nodes -->
+                        <circle cx="500" cy="300" fill="#06e4f9" fill-opacity="0.2" r="10" stroke="#06e4f9"
+                            stroke-width="2"></circle>
+                        <circle cx="200" cy="100" fill="#06e4f9" r="5"></circle>
+                        <circle cx="800" cy="400" fill="#06e4f9" r="5"></circle>
+                        <circle cx="300" cy="450" fill="#06e4f9" r="5"></circle>
+                        <circle cx="700" cy="150" fill="#06e4f9" r="5"></circle>
+                    </svg>
+                    <!-- Infrastructure Data Tooltips (Positioned Overlay) -->
+                    <div
+                        class="absolute top-[20%] left-[25%] p-3 bg-background-dark/90 border border-primary/50 rounded-lg pointer-events-auto backdrop-blur shadow-[0_0_15px_rgba(6,228,249,0.3)] min-w-[160px]">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[9px] text-primary font-bold uppercase">Node Alpha-1</span>
+                            <span class="text-[9px] text-green-400 uppercase">Synchronized</span>
+                        </div>
+                        <div class="h-12 bg-primary/20 rounded overflow-hidden relative mb-2">
+                            <img class="w-full h-full object-cover opacity-60 mix-blend-screen"
+                                data-alt="Flickering CCTV feed of a power substation"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAl-qJSkzbXEIusicLMr5ZDAwtnKlmHWP4InvQiz3yD27mOAqvlTmaLqg-h2HXEkehjIyYF1CO0QKvxxlKSI84lUcukNzILtad7oLc1OZ2Me--wd9WlJ9BfLt5Wj5llfI6LCwKT4UgnHozGzWR-ApbO8qfYWO7K3ZeUt1W1XCdyq1idWeM4J84L6vWk16QwVIwijagfe9Ywin_yr8t8ZzyKWDOQ0gZyyheywseB2XKUO1R3_efnU3GtP3Ov6l504Q7hx67QXMNotPTG" />
+                            <div class="absolute inset-0 flex items-center justify-center"><span
+                                    class="material-symbols-outlined text-primary text-sm">videocam</span></div>
+                        </div>
+                        <p class="text-[10px] text-slate-200">Substation 4-B: Rerouting</p>
+                    </div>
+                    <div
+                        class="absolute bottom-[20%] right-[25%] p-3 bg-background-dark/90 border border-primary/50 rounded-lg pointer-events-auto backdrop-blur shadow-[0_0_15px_rgba(6,228,249,0.3)] min-w-[160px]">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[9px] text-primary font-bold uppercase">Node Delta-9</span>
+                            <span class="text-[9px] text-primary animate-pulse">Transmitting...</span>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="h-1 bg-primary/20 w-full rounded-full overflow-hidden">
+                                <div class="bg-primary h-full w-[72%]"></div>
+                            </div>
+                            <p class="text-[10px] text-slate-200">Bridge Access Lock: 72%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Map Controls Area -->
+            <div class="absolute bottom-10 flex gap-4 pointer-events-auto">
+                <div class="flex items-center gap-2 bg-panel-dark/80 border border-primary/20 p-2 rounded-lg">
+                    <button
+                        class="size-8 flex items-center justify-center bg-primary/10 hover:bg-primary/30 text-primary rounded transition-colors">
+                        <span class="material-symbols-outlined text-lg">zoom_in</span>
+                    </button>
+                    <button
+                        class="size-8 flex items-center justify-center bg-primary/10 hover:bg-primary/30 text-primary rounded transition-colors">
+                        <span class="material-symbols-outlined text-lg">zoom_out</span>
+                    </button>
+                    <div class="w-[1px] h-6 bg-primary/20 mx-1"></div>
+                    <button
+                        class="size-8 flex items-center justify-center bg-primary/10 hover:bg-primary/30 text-primary rounded transition-colors">
+                        <span class="material-symbols-outlined text-lg">layers</span>
+                    </button>
+                    <button
+                        class="size-8 flex items-center justify-center bg-primary/10 hover:bg-primary/30 text-primary rounded transition-colors">
+                        <span class="material-symbols-outlined text-lg">center_focus_weak</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+        <!-- Right Panel: Agent Deployment HUD -->
+        <aside class="w-80 flex flex-col border-l border-primary/10 bg-panel-dark/40 backdrop-blur-xl z-20">
+            <div class="p-4 border-b border-primary/10 bg-primary/5">
+                <h3 class="text-primary text-xs font-bold tracking-widest uppercase flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">groups_2</span> Agent Deployment HUD
+                </h3>
+            </div>
+            <div class="flex-1 p-4 space-y-4 overflow-y-auto scrollbar-hide">
+                <!-- Agent Card 1 -->
+                <div
+                    class="p-3 bg-primary/5 border border-primary/30 rounded-lg relative group transition-all hover:bg-primary/10">
+                    <div class="absolute top-2 right-2 flex gap-1">
+                        <div class="size-2 bg-primary rounded-full animate-pulse"></div>
+                    </div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="size-10 rounded border border-primary/40 bg-background-dark p-1">
+                            <img class="w-full h-full object-cover grayscale opacity-80"
+                                data-alt="Holographic AI agent portrait - Sentinel 01"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCE3EXqPxM8fxO_zurwt9OLpAFqjVgnyLy2SUuBVhJPvNJpE8xUAPHC3LKKgiqIwwAQtvcNkbY8vEZK9n_cpMcZXsMl2wUulBjx-dPnDJvXCt7LtqEKQagf4z1HhqgQPYLDCtveBVknhcFx6l6RBfaynITWhPewpTlQxv0YPsNGJqd8r_SiGuPyLe73S85GTudYLxUeMtWHJxAmXJGcqjcytDhaIQF_oOeXYGpOanOCFsppD-euJFOUq7vHv-aCgdj5vCz0yJW7C9CB" />
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-white uppercase">Sentinel Orchestrator</span>
+                            <span class="text-[9px] text-primary/60 font-mono tracking-widest uppercase">Lead
+                                Strategist</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <div class="bg-background-dark/50 p-1.5 rounded border border-primary/10">
+                            <p class="text-[8px] text-primary/60 uppercase">Engagement</p>
+                            <p class="text-[10px] font-bold text-white uppercase">Active 100%</p>
+                        </div>
+                        <div class="bg-background-dark/50 p-1.5 rounded border border-primary/10">
+                            <p class="text-[8px] text-primary/60 uppercase">Telemetry</p>
+                            <p class="text-[10px] font-bold text-white uppercase">4.2ms Latency</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Agent Card 2 -->
+                <div
+                    class="p-3 bg-primary/5 border border-primary/30 rounded-lg relative transition-all hover:bg-primary/10">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="size-10 rounded border border-primary/40 bg-background-dark p-1">
+                            <img class="w-full h-full object-cover grayscale opacity-80"
+                                data-alt="Infrastructure data analysis icon"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmoT-9n-omvItKlTsTgh4kD0Qvm5tmfzD3oA4OoR3wSNvQIax6kmOIS3wWmwrtJPUiYYVDw5FKYUcu_q7nxjBAH7Iil3ILFXP9uB2IUnwpdUmE9Msr--ui6Uh43epRtN46BPxK0E-yUyyPNx4vL-eUSJXUV4ounzzChltB4vWLF6Tu4xN3E_rdll5bnMavs0LTRlNfOYy1DhRay4mv7-cWg-Jidn-0z7c4sDy7hDkLlPMIl8JSP5akMbeqx2ODRRMSWG6FSoMO4BNe" />
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-white uppercase">Grid-Alpha Node</span>
+                            <span class="text-[9px] text-primary/60 font-mono tracking-widest uppercase">Logic
+                                Execution</span>
+                        </div>
+                    </div>
+                    <div class="bg-primary/20 h-1.5 w-full rounded-full overflow-hidden mt-3">
+                        <div class="bg-primary h-full w-[88%]"></div>
+                    </div>
+                    <div class="flex justify-between mt-1">
+                        <span class="text-[8px] text-primary/60">PACKET BUFFER</span>
+                        <span class="text-[8px] text-primary font-bold">88.4% CAP</span>
+                    </div>
+                </div>
+                <!-- Live Metrics Mini-Panel -->
+                <div class="mt-6 p-4 border border-primary/20 rounded bg-background-dark/50 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-tighter">Global Packet Success</span>
+                        <span class="text-xs text-primary font-mono">99.998%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-tighter">Encrypted Handshakes</span>
+                        <span class="text-xs text-primary font-mono">1,402 / SEC</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-tighter">Infrastructure Nodes</span>
+                        <span class="text-xs text-primary font-mono">ACTIVE (42)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-primary/10 flex flex-col gap-2">
+                <div class="flex justify-between text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">
+                    <span>System Integrity</span>
+                    <span>Nominal</span>
+                </div>
+                <div class="h-1 bg-primary/10 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary w-full"></div>
+                </div>
+            </div>
+        </aside>
+    </main>
+    <!-- Bottom Command Transmission Progress Bar -->
+    <footer class="h-20 bg-panel-dark/90 border-t border-primary/40 flex flex-col z-50 overflow-hidden relative">
+        <!-- Progress Bar Background (The Pulse) -->
+        <div class="flex-1 flex items-stretch">
+            <div class="w-24 bg-primary flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-background-dark font-bold">upload</span>
+            </div>
+            <div class="flex-1 flex flex-col relative px-8 py-2">
+                <div class="flex justify-between items-end mb-1">
+                    <div class="flex items-center gap-3">
+                        <span class="text-primary text-sm font-bold tracking-[0.2em] uppercase">Command Transmission in
+                            Progress</span>
+                        <span class="text-[10px] font-mono text-primary/60 animate-pulse">01011001 01100101
+                            01110011</span>
+                    </div>
+                    <span class="text-primary text-xl font-bold font-mono">68.2%</span>
+                </div>
+                <div class="h-6 w-full bg-primary/10 border border-primary/30 rounded relative overflow-hidden">
+                    <!-- Progress Bar Inner Animation Mock -->
+                    <div class="h-full bg-primary/40 w-[68%] transition-all duration-1000"></div>
+                    <!-- Segment Lines -->
+                    <div class="absolute inset-0 flex justify-between px-1 pointer-events-none">
+                        <div class="w-[1px] h-full bg-background-dark/40"></div>
+                        <div class="w-[1px] h-full bg-background-dark/40"></div>
+                        <div class="w-[1px] h-full bg-background-dark/40"></div>
+                        <div class="w-[1px] h-full bg-background-dark/40"></div>
+                        <div class="w-[1px] h-full bg-background-dark/40"></div>
+                        <div class="w-[1px] h-full bg-background-dark/40"></div>
+                        <div class="w-[1px] h-full bg-background-dark/40"></div>
+                        <div class="w-[1px] h-full bg-background-dark/40"></div>
+                        <div class="w-[1px] h-full bg-background-dark/40"></div>
+                        <div class="w-[1px] h-full bg-background-dark/40"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="w-48 bg-primary/5 border-l border-primary/20 flex flex-col justify-center px-4 font-mono">
+                <span class="text-[9px] text-primary uppercase font-bold">Bitrate Stream</span>
+                <span class="text-sm text-slate-100">8.4 GB / S</span>
+            </div>
+        </div>
+        <!-- Flickering Data Packet Text Overlay -->
+        <div class="h-4 bg-background-dark flex items-center px-4 overflow-hidden">
+            <marquee class="text-[9px] font-mono text-primary/40 tracking-[0.5em] uppercase" scrollamount="12">
+                Sending command packet [auth:cmd_77] to node grid_alpha_primary // success. rerouting substation_04_b to
+                emergency_grid // secure link confirmed. packet id: 081422-99128 // all agents executing instructions.
+            </marquee>
+        </div>
+    </footer>
+    <!-- Global Screen Overlay Effects -->
+    <div class="scanline top-0"></div>
+    <div
+        class="fixed inset-0 pointer-events-none border-[1.5rem] border-background-dark/30 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)] z-[100]">
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SentinelGov Control Center Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00f0ff", // Electric Aqua
+                        secondary: "#0a192f", // Deep Navy
+                        accent: "#ff003c", // Alert Red
+                        "background-light": "#f0f4f8",
+                        "background-dark": "#050b14",
+                        "glass-dark": "rgba(10, 25, 47, 0.7)",
+                        "glass-border": "rgba(0, 240, 255, 0.15)",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        display: ["Rajdhani", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        xl: "1rem",
+                        "2xl": "1.5rem",
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(0, 240, 255, 0.3), 0 0 20px rgba(0, 240, 255, 0.2)',
+                        'neon-red': '0 0 10px rgba(255, 0, 60, 0.3), 0 0 20px rgba(255, 0, 60, 0.2)',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'scan': 'scan 4s linear infinite',
+                    },
+                    keyframes: {
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' },
+                        }
+                    }
+                },
+            },
+        };
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #050b14;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1e3a5f;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+
+        .glass-panel {
+            background: rgba(13, 22, 35, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.1);
+        }
+
+        .map-grid {
+            background-image:
+                linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .typing-cursor::after {
+            content: '|';
+            animation: blink 1s step-start infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .radar-sweep {
+            background: conic-gradient(from 0deg, transparent 0deg, rgba(0, 240, 255, 0.4) 360deg);
+            animation: spin 4s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #00f0ff;
+        }
+
+        .toggle-checkbox:checked+.toggle-label {
+            background-color: #00f0ff;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 font-sans h-screen overflow-hidden flex flex-col transition-colors duration-300">
+    <nav
+        class="h-16 w-full glass-panel border-b border-glass-border flex items-center justify-between px-6 z-50 shrink-0">
+        <div class="flex items-center gap-4">
+            <a href="/" class="flex items-center gap-2 cursor-pointer">
+                <span class="material-icons-round text-primary text-3xl animate-pulse">security</span>
+                <h1 class="font-display font-bold text-2xl tracking-widest text-slate-900 dark:text-white">
+                    SENTINEL<span class="text-primary">GOV</span>
+                </h1>
+            </a>
+            <div class="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-2"></div>
+            <a href="/sentinelgov_critical_authorization_portal/code.html"
+                class="flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 cursor-pointer hover:bg-red-500/20 transition">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <span class="text-xs font-mono text-red-400 font-bold uppercase tracking-wider">Crisis Mode
+                    Active</span>
+            </a>
+        </div>
+        <div class="flex items-center gap-8">
+            <div class="text-center">
+                <p class="text-[10px] uppercase text-slate-500 dark:text-slate-400 tracking-wider">System Time</p>
+                <p class="font-mono text-sm font-bold text-primary">14:42:09 UTC</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span
+                    class="text-xs font-display font-bold uppercase text-slate-600 dark:text-slate-300">Auto-Pilot</span>
+                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input
+                        class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-slate-300 dark:border-slate-800 appearance-none cursor-pointer transition-all duration-300 translate-x-0 checked:translate-x-6 checked:bg-primary"
+                        id="toggle" name="toggle" type="checkbox" />
+                    <label
+                        class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 dark:bg-slate-800 cursor-pointer border border-transparent"
+                        for="toggle"></label>
+                </div>
+                <span class="text-xs font-display font-bold uppercase text-primary shadow-neon">Human-in-Loop</span>
+            </div>
+            <div class="flex items-center gap-3 border-l border-slate-300 dark:border-slate-700 pl-6">
+                <div class="relative">
+                    <span
+                        class="material-icons-round text-slate-400 hover:text-white cursor-pointer transition-colors">notifications</span>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-slate-700 border border-primary overflow-hidden">
+                    <img alt="Admin User"
+                        class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZ8kZdhMJeiACBgyCQrNTONvLrkI01A5i6UDvxEFfgLGoytk4M0eJwfcO05GwQJ5loiWYupa_bEcCXU6OFGBleM6H_k1wsl1AkLG2ZsZ6Wkaw-gFnNNl7o4stoRv8pi0RG4GrTG12zMEfXSf4H8hcyG9Ef9zOpWsP8Y_TY87V7k1Zb2IjN4nGhMHkgLKJ8b79CgPKt4KHfCPRGHv4jP7cvs0KSbUid144BcBu7aHXmMWUshMar_VYwlR4fUIvAI6ejvv7tuiUaUO8T" />
+                </div>
+            </div>
+        </div>
+    </nav>
+    <main class="flex-1 flex overflow-hidden p-4 gap-4 relative">
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none map-grid"></div>
+        <section class="w-80 flex flex-col gap-4 z-10 shrink-0">
+            <div class="glass-panel rounded-xl p-4 flex-1 flex flex-col border-l-2 border-l-primary overflow-hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-display font-bold text-lg text-white flex items-center gap-2">
+                        <span class="material-icons-round text-primary text-sm">smart_toy</span>
+                        AGENT LOG
+                    </h2>
+                    <span
+                        class="text-[10px] px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">LIVE</span>
+                </div>
+                <div class="flex-1 overflow-y-auto space-y-3 pr-2 font-mono text-xs">
+                    <a href="/sentinelgov_agent_decision_logic_view/code.html"
+                        class="block p-3 rounded bg-slate-800/50 border border-slate-700/50 hover:border-primary/50 transition-colors group cursor-pointer">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-primary font-bold">AGENT-04</span>
+                            <span class="text-slate-500">14:41:55</span>
+                        </div>
+                        <p class="text-slate-300 group-hover:text-white transition-colors">Analyzing flood patterns in
+                            Sector 7...</p>
+                        <div class="mt-2 w-full bg-slate-700 h-1 rounded-full overflow-hidden">
+                            <div class="bg-primary h-full w-3/4 animate-pulse"></div>
+                        </div>
+                    </a>
+                    <div
+                        class="p-3 rounded bg-slate-800/50 border border-slate-700/50 hover:border-primary/50 transition-colors group">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-emerald-400 font-bold">MED-BOT-12</span>
+                            <span class="text-slate-500">14:41:42</span>
+                        </div>
+                        <p class="text-slate-300 group-hover:text-white transition-colors">Supply drop calculated.
+                            Optimization complete.</p>
+                        <div class="mt-1 flex gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span class="text-[10px] text-emerald-500">Deployed</span>
+                        </div>
+                    </div>
+                    <div
+                        class="p-3 rounded bg-red-900/10 border border-red-500/30 hover:bg-red-900/20 transition-colors">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-red-400 font-bold">SEC-UNIT-09</span>
+                            <span class="text-slate-500">14:41:10</span>
+                        </div>
+                        <p class="text-red-300 typing-cursor">Anomaly detected in bridge structural integrity.</p>
+                    </div>
+                    <div
+                        class="p-3 rounded bg-slate-800/50 border border-slate-700/50 hover:border-primary/50 transition-colors group opacity-60">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-primary font-bold">AGENT-01</span>
+                            <span class="text-slate-500">14:40:22</span>
+                        </div>
+                        <p class="text-slate-300">Traffic rerouting protocol initiated.</p>
+                    </div>
+                    <div
+                        class="p-3 rounded bg-slate-800/50 border border-slate-700/50 hover:border-primary/50 transition-colors group opacity-40">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-blue-400 font-bold">LOGISTICS-AI</span>
+                            <span class="text-slate-500">14:39:55</span>
+                        </div>
+                        <p class="text-slate-300">Inventory scan complete.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 h-32 flex flex-col justify-center">
+                <h3 class="text-xs uppercase text-slate-400 font-bold mb-2">Network Latency</h3>
+                <div class="flex items-end gap-1 h-12 w-full mb-1">
+                    <div class="w-1/6 bg-primary/20 h-[40%] rounded-t-sm"></div>
+                    <div class="w-1/6 bg-primary/30 h-[60%] rounded-t-sm"></div>
+                    <div class="w-1/6 bg-primary/40 h-[30%] rounded-t-sm"></div>
+                    <div class="w-1/6 bg-primary/60 h-[80%] rounded-t-sm"></div>
+                    <div class="w-1/6 bg-primary/80 h-[50%] rounded-t-sm"></div>
+                    <div class="w-1/6 bg-primary h-[45%] rounded-t-sm animate-pulse"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                    <span>node-01</span>
+                    <span class="text-primary">12ms</span>
+                </div>
+            </div>
+        </section>
+        <section class="flex-1 relative rounded-xl overflow-hidden border border-slate-700 bg-slate-900 group">
+            <img alt="Digital Twin Satellite Map"
+                class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-luminosity hover:scale-105 transition-transform duration-[10s] ease-linear"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLOb0WBibRtECH9_MPr-y-M4U888wbGY--3je9a1rs_IFI9n0dykshxrXw6tcOhmK1GgcuFGlPZOcL498eciA2ipZbt4F_1y28boL-7erR3b2lcOFKPeeFYuI1ZtpjSn_nymNsbga0-S24e4otgQ2Sxn8DIQFTS89vDehpAhj3h1V29sd52Ic3HL6hV-YKoVc9dHlpXMJqX2RPSLAGzEwcnxDXSYBI6eF7qtIi7UrGUHHDX4qg4N4k0zAy1ppXMzlYmebLil1weA-L" />
+            <div
+                class="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent opacity-80">
+            </div>
+            <div
+                class="absolute inset-x-0 h-1 bg-primary/50 shadow-[0_0_20px_rgba(0,240,255,0.5)] animate-scan opacity-30 z-10">
+            </div>
+            <div class="absolute top-1/3 left-1/3 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse-slow">
+            </div>
+            <div class="absolute bottom-1/3 right-1/4 w-48 h-48 bg-red-500/20 rounded-full blur-3xl animate-pulse">
+            </div>
+            <div class="absolute top-4 left-4 z-20">
+                <div class="glass-panel px-3 py-1 rounded text-xs font-mono text-primary border border-primary/30">
+                    LAT: 34.0522 N / LNG: 118.2437 W
+                </div>
+            </div>
+            <div class="absolute top-[40%] left-[55%] z-20 group/marker cursor-pointer">
+                <div class="w-4 h-4 rounded-full bg-primary shadow-neon animate-ping absolute"></div>
+                <div class="w-4 h-4 rounded-full bg-white relative flex items-center justify-center">
+                    <span class="w-1.5 h-1.5 bg-background-dark rounded-full"></span>
+                </div>
+                <div
+                    class="absolute left-6 top-0 bg-background-dark border border-primary/50 text-white text-xs p-2 rounded w-48 hidden group-hover/marker:block z-30">
+                    <strong class="block text-primary mb-1">FLOOD BARRIER 4A</strong>
+                    Status: Critical Load
+                    <br />Water Lvl: +4.2m
+                </div>
+            </div>
+            <div class="absolute top-[60%] left-[35%] z-20 group/marker cursor-pointer">
+                <div class="w-3 h-3 rounded-full bg-red-500 shadow-neon-red absolute animate-pulse"></div>
+                <div
+                    class="absolute left-6 top-0 bg-background-dark border border-red-500/50 text-white text-xs p-2 rounded w-40 hidden group-hover/marker:block z-30">
+                    <strong class="block text-red-500 mb-1">CIVILIAN CLUSTER</strong>
+                    Evacuation Required
+                    <br />Count: ~450
+                </div>
+            </div>
+            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                <button
+                    class="bg-background-dark/80 backdrop-blur text-white p-2 rounded-lg border border-slate-700 hover:border-primary hover:text-primary transition-all">
+                    <span class="material-icons-round text-sm">layers</span>
+                </button>
+                <a href="/sentinelgov_agent_reasoning_modal/code.html"
+                    class="bg-primary text-background-dark p-2 rounded-lg font-bold text-xs flex items-center gap-2 shadow-neon hover:bg-[#3ff2ff] transition-colors">
+                    <span class="material-icons-round text-sm">play_arrow</span> SIMULATION
+                </a>
+                <button
+                    class="bg-background-dark/80 backdrop-blur text-white p-2 rounded-lg border border-slate-700 hover:border-primary hover:text-primary transition-all">
+                    <span class="material-icons-round text-sm">zoom_in</span>
+                </button>
+            </div>
+        </section>
+        <section class="w-72 flex flex-col gap-4 z-10 shrink-0">
+            <div class="glass-panel rounded-xl p-5 flex flex-col items-center">
+                <h3
+                    class="w-full text-left font-display font-bold text-sm text-slate-300 mb-4 border-b border-slate-700 pb-2">
+                    THREAT INDEX</h3>
+                <div class="relative w-40 h-40 flex items-center justify-center">
+                    <svg class="w-full h-full transform -rotate-90">
+                        <circle cx="80" cy="80" fill="transparent" r="70" stroke="rgba(255,255,255,0.1)"
+                            stroke-width="8"></circle>
+                        <circle class="drop-shadow-[0_0_10px_rgba(255,0,60,0.5)]" cx="80" cy="80" fill="transparent"
+                            r="70" stroke="#ff003c" stroke-dasharray="440" stroke-dashoffset="110" stroke-width="8">
+                        </circle>
+                    </svg>
+                    <div class="absolute flex flex-col items-center">
+                        <span class="text-4xl font-display font-bold text-white">75%</span>
+                        <span
+                            class="text-xs text-red-400 font-bold uppercase tracking-wider animate-pulse">CRITICAL</span>
+                    </div>
+                </div>
+                <div class="w-full mt-4 space-y-2">
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>Water Level</span>
+                        <span class="text-primary">Rising</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>Wind Speed</span>
+                        <span class="text-white">45 km/h</span>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 flex-1 flex flex-col border-r-2 border-r-primary">
+                <h3 class="font-display font-bold text-sm text-slate-300 mb-3 flex items-center justify-between">
+                    <span>SIMULATION ENGINE</span>
+                    <span class="material-icons-round text-primary text-base animate-spin">settings</span>
+                </h3>
+                <div class="flex-1 flex flex-col gap-4">
+                    <div>
+                        <div class="flex justify-between text-[10px] text-slate-400 mb-1 uppercase tracking-wider">
+                            <span>Projection Depth</span>
+                            <span>4 hrs</span>
+                        </div>
+                        <input class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                            max="100" min="0" type="range" value="30" />
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] text-slate-400 mb-1 uppercase tracking-wider">
+                            <span>Resource Allocation</span>
+                            <span>Auto</span>
+                        </div>
+                        <div class="flex gap-1 h-6">
+                            <div
+                                class="flex-1 bg-primary/20 border border-primary/40 rounded hover:bg-primary/40 cursor-pointer transition-colors">
+                            </div>
+                            <div
+                                class="flex-1 bg-primary/20 border border-primary/40 rounded hover:bg-primary/40 cursor-pointer transition-colors">
+                            </div>
+                            <div class="flex-1 bg-slate-700/50 border border-slate-600 rounded cursor-pointer"></div>
+                        </div>
+                    </div>
+                    <div
+                        class="mt-auto relative w-full aspect-square rounded-full border border-slate-700 bg-slate-800/50 overflow-hidden flex items-center justify-center">
+                        <div class="absolute inset-0 radar-sweep rounded-full origin-center"></div>
+                        <div class="w-full h-[1px] bg-slate-700 absolute"></div>
+                        <div class="h-full w-[1px] bg-slate-700 absolute"></div>
+                        <div class="w-2/3 h-2/3 border border-slate-600 rounded-full absolute opacity-30"></div>
+                        <div class="w-1/3 h-1/3 border border-slate-600 rounded-full absolute opacity-30"></div>
+                        <div class="absolute top-1/4 right-1/4 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></div>
+                        <div class="absolute bottom-1/3 left-1/3 w-1 h-1 bg-primary rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="h-32 px-4 pb-4 w-full grid grid-cols-4 gap-4 shrink-0 z-10">
+        <div
+            class="glass-panel rounded-xl p-4 flex items-center justify-between group hover:bg-slate-800/80 transition-all cursor-pointer border-t-2 border-t-transparent hover:border-t-primary">
+            <div>
+                <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">Pop. Affected</p>
+                <h4 class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors">12,405
+                </h4>
+                <p class="text-xs text-red-400 flex items-center gap-1 mt-1">
+                    <span class="material-icons-round text-sm">trending_up</span> +5.2%
+                </p>
+            </div>
+            <div
+                class="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 group-hover:text-white group-hover:shadow-neon transition-all">
+                <span class="material-icons-round">groups</span>
+            </div>
+        </div>
+        <div
+            class="glass-panel rounded-xl p-4 flex items-center justify-between group hover:bg-slate-800/80 transition-all cursor-pointer border-t-2 border-t-transparent hover:border-t-primary">
+            <div>
+                <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">Response Units</p>
+                <h4 class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors">48/52
+                </h4>
+                <p class="text-xs text-emerald-400 flex items-center gap-1 mt-1">
+                    <span class="material-icons-round text-sm">check_circle</span> 92% Active
+                </p>
+            </div>
+            <div
+                class="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 group-hover:text-white group-hover:shadow-neon transition-all">
+                <span class="material-icons-round">local_shipping</span>
+            </div>
+        </div>
+        <div
+            class="glass-panel rounded-xl p-4 flex items-center justify-between group hover:bg-slate-800/80 transition-all cursor-pointer border-t-2 border-t-transparent hover:border-t-primary">
+            <div>
+                <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">Est. Damage</p>
+                <h4 class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors">$4.2M
+                </h4>
+                <p class="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                    <span class="material-icons-round text-sm">remove</span> Stable
+                </p>
+            </div>
+            <div
+                class="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 group-hover:text-white group-hover:shadow-neon transition-all">
+                <span class="material-icons-round">attach_money</span>
+            </div>
+        </div>
+        <div
+            class="glass-panel rounded-xl p-4 flex items-center justify-between group hover:bg-slate-800/80 transition-all cursor-pointer border-t-2 border-t-transparent hover:border-t-primary">
+            <div>
+                <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">Time to Critical</p>
+                <h4
+                    class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors font-mono">
+                    02:14:00</h4>
+                <p class="text-xs text-orange-400 flex items-center gap-1 mt-1">
+                    <span class="material-icons-round text-sm">warning</span> Approaching
+                </p>
+            </div>
+            <div
+                class="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 group-hover:text-white group-hover:shadow-neon transition-all">
+                <span class="material-icons-round">hourglass_empty</span>
+            </div>
+        </div>
+    </footer>
+    <script>
+        // Simple random number fluctuation for realism
+        setInterval(() => {
+            const elements = document.querySelectorAll('.animate-pulse');
+            elements.forEach(el => {
+                if (Math.random() > 0.7) {
+                    el.style.opacity = Math.random();
+                }
+            });
+        }, 1000);
+    </script>
+
+</body>
+
+</html>

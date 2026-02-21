@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SentinelGov Agent Reasoning Modal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#06e4f9",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0f2123",
+                        "surface-dark": "#1b2627",
+                        "accent-cyan": "#06e4f9",
+                        "accent-cyan-dim": "rgba(6, 228, 249, 0.15)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #27383a 1px, transparent 1px), linear-gradient(to bottom, #27383a 1px, transparent 1px)",
+                    },
+                    boxShadow: {
+                        'neon': '0 0 20px -5px rgba(6, 228, 249, 0.5), 0 0 10px -2px rgba(6, 228, 249, 0.3)',
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for log */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3a5355;
+            border-radius: 2px;
+        }
+
+        /* Scanline effect */
+        .scanlines {
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        /* Animated pulse for nodes */
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(2.2);
+                opacity: 0;
+            }
+        }
+
+        .animate-pulse-ring::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            border: 1px solid #06e4f9;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        /* Grid Background Animation */
+        @keyframes grid-move {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(20px);
+            }
+        }
+
+        .animate-grid {
+            animation: grid-move 5s linear infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-slate-100 font-display overflow-hidden h-screen w-full relative">
+    <!-- Background Layer (Blurred Dashboard Context) -->
+    <div class="absolute inset-0 z-0 opacity-40 blur-sm pointer-events-none select-none overflow-hidden bg-[#111818]">
+        <!-- Reuse structure of the TopNavBar component for realistic background context -->
+        <div class="layout-container flex h-full grow flex-col">
+            <header class="flex items-center justify-between border-b border-solid border-b-[#27383a] px-10 py-3">
+                <div class="flex items-center gap-4 text-white">
+                    <div class="size-6 bg-primary/20 rounded-full"></div>
+                    <h2 class="text-white text-lg font-bold">SentinelGov</h2>
+                </div>
+            </header>
+            <div class="flex h-full p-8 gap-8">
+                <!-- Sidebar imitation -->
+                <div class="w-64 flex flex-col gap-4">
+                    <div class="h-10 bg-[#27383a] rounded w-full"></div>
+                    <div class="h-10 bg-[#27383a] rounded w-full"></div>
+                    <div class="h-10 bg-[#27383a] rounded w-full"></div>
+                </div>
+                <!-- Content imitation -->
+                <div class="flex-1 grid grid-cols-2 gap-8">
+                    <div class="bg-[#1b2627] rounded-lg h-64 w-full"></div>
+                    <div class="bg-[#1b2627] rounded-lg h-64 w-full"></div>
+                    <div class="bg-[#1b2627] rounded-lg h-40 w-full col-span-2"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Scanline overlay on bg -->
+        <div class="absolute inset-0 scanlines opacity-30"></div>
+    </div>
+    <!-- Overlay Tint -->
+    <div class="absolute inset-0 bg-black/60 z-10 backdrop-blur-[2px]"></div>
+    <!-- Main Modal Container -->
+    <div class="relative z-20 flex h-full w-full items-center justify-center p-4">
+        <!-- Modal Card -->
+        <div
+            class="relative flex w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-[#3a5355] bg-[#0f172a]/90 shadow-glass backdrop-blur-xl md:flex-row md:h-[750px]">
+            <!-- Decorative corner accents -->
+            <div class="absolute top-0 left-0 h-16 w-16 border-l-2 border-t-2 border-primary rounded-tl-xl opacity-80">
+            </div>
+            <div
+                class="absolute bottom-0 right-0 h-16 w-16 border-r-2 border-b-2 border-primary rounded-br-xl opacity-80">
+            </div>
+            <!-- Modal Header (Mobile/Top) -->
+            <div
+                class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between border-b border-[#3a5355] bg-[#0f172a]/95 px-6 py-4 md:hidden">
+                <div class="flex items-center gap-2 text-primary">
+                    <span class="material-symbols-outlined">hub</span>
+                    <span class="font-bold tracking-wider">NEURAL CONSENSUS</span>
+                </div>
+                <a href="/sentinelgov_control_center_dashboard/code.html" class="text-slate-400 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </a>
+            </div>
+            <!-- Left Column: Neural Path Visualization -->
+            <div
+                class="relative flex flex-col justify-between border-r border-[#3a5355] bg-[#131d23]/80 p-8 md:w-7/12 pt-20 md:pt-8">
+                <!-- Background Grid for Visualization -->
+                <div class="absolute inset-0 bg-grid-pattern bg-[length:40px_40px] opacity-[0.07] animate-grid"></div>
+                <!-- Header -->
+                <div class="relative z-10 mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-8 w-8 items-center justify-center rounded bg-primary/20 text-primary">
+                            <span class="material-symbols-outlined text-sm">account_tree</span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold tracking-tight text-white">Neural Path Visualization</h2>
+                            <p class="text-xs font-medium uppercase tracking-widest text-primary">Live Inference Stream
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Visualization Graph -->
+                <div class="relative z-10 flex flex-1 items-center justify-center py-6">
+                    <!-- Graph Container -->
+                    <div class="relative h-[400px] w-full max-w-[500px]">
+                        <!-- Connecting Lines (SVG) -->
+                        <svg class="absolute inset-0 h-full w-full pointer-events-none" style="z-index: 0;">
+                            <!-- Defs for gradients -->
+                            <defs>
+                                <lineargradient id="lineGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#3a5355;stop-opacity:0.2"></stop>
+                                    <stop offset="50%" style="stop-color:#06e4f9;stop-opacity:0.8"></stop>
+                                    <stop offset="100%" style="stop-color:#3a5355;stop-opacity:0.2"></stop>
+                                </lineargradient>
+                            </defs>
+                            <!-- Lines from Center to Satellites -->
+                            <line class="opacity-60" stroke="url(#lineGradient)" stroke-dasharray="4 2" stroke-width="2"
+                                x1="50%" x2="50%" y1="50%" y2="15%"></line>
+                            <line class="opacity-60" stroke="url(#lineGradient)" stroke-dasharray="4 2" stroke-width="2"
+                                x1="50%" x2="20%" y1="50%" y2="75%"></line>
+                            <line class="opacity-60" stroke="url(#lineGradient)" stroke-dasharray="4 2" stroke-width="2"
+                                x1="50%" x2="80%" y1="50%" y2="75%"></line>
+                            <!-- Animated Pulse on Lines -->
+                            <circle fill="#06e4f9" r="3">
+                                <animatemotion dur="2s" path="M250,200 L250,60" repeatcount="indefinite">
+                                </animatemotion>
+                            </circle>
+                            <circle fill="#06e4f9" r="3">
+                                <animatemotion dur="2.5s" path="M250,200 L100,300" repeatcount="indefinite">
+                                </animatemotion>
+                            </circle>
+                            <circle fill="#06e4f9" r="3">
+                                <animatemotion dur="2.2s" path="M250,200 L400,300" repeatcount="indefinite">
+                                </animatemotion>
+                            </circle>
+                        </svg>
+                        <!-- Center Node: Orchestrator -->
+                        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform text-center">
+                            <div
+                                class="relative mb-2 flex h-24 w-24 items-center justify-center rounded-full bg-[#1b2627] border-2 border-primary shadow-[0_0_30px_rgba(6,228,249,0.2)] animate-pulse-ring z-10">
+                                <span class="material-symbols-outlined text-4xl text-primary">psychology</span>
+                            </div>
+                            <div
+                                class="bg-black/40 px-3 py-1 rounded backdrop-blur-sm border border-white/10 inline-block">
+                                <span
+                                    class="block text-xs font-bold text-white uppercase tracking-wider">Orchestrator</span>
+                                <span class="block text-[10px] text-primary">Processing</span>
+                            </div>
+                        </div>
+                        <!-- Top Node: Risk Module -->
+                        <div
+                            class="absolute left-1/2 top-[15%] -translate-x-1/2 -translate-y-1/2 transform text-center">
+                            <div
+                                class="relative mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-[#1b2627] border border-[#3a5355] text-white hover:border-primary transition-colors duration-300 z-10">
+                                <span class="material-symbols-outlined text-2xl">shield</span>
+                            </div>
+                            <div
+                                class="bg-black/40 px-2 py-1 rounded backdrop-blur-sm border border-white/10 inline-block">
+                                <span class="block text-[10px] font-bold text-slate-300 uppercase tracking-wider">Risk
+                                    Module</span>
+                            </div>
+                        </div>
+                        <!-- Left Bottom Node: Sim Engine -->
+                        <div
+                            class="absolute left-[20%] top-[75%] -translate-x-1/2 -translate-y-1/2 transform text-center">
+                            <div
+                                class="relative mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-[#1b2627] border border-[#3a5355] text-white hover:border-primary transition-colors duration-300 z-10">
+                                <span class="material-symbols-outlined text-2xl">science</span>
+                            </div>
+                            <div
+                                class="bg-black/40 px-2 py-1 rounded backdrop-blur-sm border border-white/10 inline-block">
+                                <span class="block text-[10px] font-bold text-slate-300 uppercase tracking-wider">Sim
+                                    Engine</span>
+                            </div>
+                        </div>
+                        <!-- Right Bottom Node: Response -->
+                        <div
+                            class="absolute left-[80%] top-[75%] -translate-x-1/2 -translate-y-1/2 transform text-center">
+                            <div
+                                class="relative mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-[#1b2627] border border-[#3a5355] text-white hover:border-primary transition-colors duration-300 z-10">
+                                <span class="material-symbols-outlined text-2xl">rocket_launch</span>
+                            </div>
+                            <div
+                                class="bg-black/40 px-2 py-1 rounded backdrop-blur-sm border border-white/10 inline-block">
+                                <span class="block text-[10px] font-bold text-slate-300 uppercase tracking-wider">Field
+                                    Ops</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Key Metrics Strip -->
+                <div class="relative z-10 mt-auto grid grid-cols-3 gap-4 border-t border-[#3a5355] pt-6">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[10px] font-medium uppercase text-slate-400">Latency</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-xl font-bold text-white">12<span
+                                    class="text-sm font-normal text-slate-400">ms</span></span>
+                            <span class="text-[10px] text-primary">▼ 2ms</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1 border-l border-[#3a5355] pl-4">
+                        <span class="text-[10px] font-medium uppercase text-slate-400">Compute Load</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-xl font-bold text-white">42<span
+                                    class="text-sm font-normal text-slate-400">%</span></span>
+                            <span class="text-[10px] text-emerald-400">Optimal</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1 border-l border-[#3a5355] pl-4">
+                        <span class="text-[10px] font-medium uppercase text-slate-400">Agents Active</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-xl font-bold text-white">4<span
+                                    class="text-sm font-normal text-slate-400">/4</span></span>
+                            <span class="text-[10px] text-primary">Synced</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Column: Analytical Breakdown -->
+            <div class="flex flex-col bg-[#0f172a] p-8 md:w-5/12 relative">
+                <!-- Desktop Close Button -->
+                <a href="/sentinelgov_control_center_dashboard/code.html"
+                    class="absolute right-6 top-6 hidden rounded-full bg-[#27383a] p-2 text-slate-400 transition hover:bg-[#3a5355] hover:text-white md:flex">
+                    <span class="material-symbols-outlined">close</span>
+                </a>
+                <!-- Confidence Gauge Section -->
+                <div class="mb-8 mt-4 flex flex-col items-center justify-center gap-4">
+                    <div class="relative flex h-40 w-40 items-center justify-center">
+                        <!-- SVG Gauge -->
+                        <svg class="h-full w-full -rotate-90 transform" viewbox="0 0 100 100">
+                            <!-- Background Circle -->
+                            <circle cx="50" cy="50" fill="none" r="45" stroke="#1b2627" stroke-width="8"></circle>
+                            <!-- Progress Circle (98.4%) -->
+                            <circle class="drop-shadow-[0_0_8px_rgba(6,228,249,0.5)]" cx="50" cy="50" fill="none" r="45"
+                                stroke="#06e4f9" stroke-dasharray="283" stroke-dashoffset="5" stroke-linecap="round"
+                                stroke-width="8"></circle>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                            <span class="text-4xl font-black tracking-tighter text-white">98.4<span
+                                    class="text-lg">%</span></span>
+                            <span
+                                class="text-[10px] uppercase font-bold text-primary tracking-widest mt-1">Confidence</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm text-slate-300">Strategy Success Probability: <span
+                                class="font-bold text-white">Very High</span></p>
+                        <p class="text-xs text-slate-500">Based on 1.4M historical simulations</p>
+                    </div>
+                </div>
+                <!-- Logic Log (Terminal Style) -->
+                <div class="flex flex-1 flex-col overflow-hidden rounded-lg border border-[#3a5355] bg-[#0b1215]">
+                    <div class="flex items-center justify-between bg-[#1b2627] px-4 py-2 border-b border-[#3a5355]">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Reasoning Log //
+                            ID: SNTL-8842-X</span>
+                        <div class="flex gap-1.5">
+                            <div class="h-2 w-2 rounded-full bg-slate-600"></div>
+                            <div class="h-2 w-2 rounded-full bg-slate-600"></div>
+                        </div>
+                    </div>
+                    <div class="custom-scrollbar flex-1 overflow-y-auto p-4 font-mono text-xs leading-relaxed">
+                        <div class="mb-2 flex gap-2 opacity-60">
+                            <span class="text-primary">&gt;</span>
+                            <span class="text-slate-300">00:01:42 <span class="text-slate-500">INIT</span> Threat vector
+                                identified. Source: Grid 4A.</span>
+                        </div>
+                        <div class="mb-2 flex gap-2 opacity-80">
+                            <span class="text-primary">&gt;</span>
+                            <span class="text-slate-300">00:01:45 <span class="text-yellow-500">RISK</span> Anomaly
+                                severity classified as CRITICAL.</span>
+                        </div>
+                        <div class="mb-2 flex gap-2 opacity-80">
+                            <span class="text-primary">&gt;</span>
+                            <span class="text-slate-300">00:01:48 <span class="text-blue-400">SIM</span> Running Monte
+                                Carlo simulation (n=3000)...</span>
+                        </div>
+                        <div class="mb-2 flex gap-2 opacity-80">
+                            <span class="text-primary">&gt;</span>
+                            <span class="text-slate-300">00:01:52 <span class="text-blue-400">SIM</span> Scenario C
+                                selected (98.4% success rate).</span>
+                        </div>
+                        <div class="mb-2 flex gap-2">
+                            <span class="text-primary">&gt;</span>
+                            <span class="text-white font-bold">00:01:55 <span class="text-primary">ORCH</span> Consensus
+                                Reached. Awaiting Authorization.</span>
+                        </div>
+                        <div class="flex gap-2 animate-pulse">
+                            <span class="text-primary">&gt;</span>
+                            <span class="h-4 w-2 bg-primary"></span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Footer Actions -->
+                <div class="mt-6 flex flex-col gap-3">
+                    <a href="/sentinelgov_critical_authorization_portal/code.html"
+                        class="group relative flex h-12 w-full items-center justify-center overflow-hidden rounded bg-primary text-black transition hover:bg-[#3bf6ff]">
+                        <div
+                            class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out">
+                        </div>
+                        <span class="relative z-10 flex items-center gap-2 text-sm font-bold tracking-wider uppercase">
+                            <span class="material-symbols-outlined text-lg">check_circle</span>
+                            Approve Strategy
+                        </span>
+                    </a>
+                    <button
+                        class="flex h-12 w-full items-center justify-center rounded border border-[#3a5355] bg-transparent text-slate-300 transition hover:border-white hover:text-white">
+                        <span class="flex items-center gap-2 text-sm font-medium tracking-wide uppercase">
+                            <span class="material-symbols-outlined text-lg">flag</span>
+                            Request Manual Review
+                        </span>
+                    </button>
+                    <div class="mt-2 text-center">
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest">Authorized Personnel Only •
+                            Level 5 Clearance</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Bottom Edge Gradient Line for cinematic effect -->
+            <div
+                class="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r from-transparent via-primary to-transparent opacity-50">
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
