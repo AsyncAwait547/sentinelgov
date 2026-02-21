@@ -292,3 +292,6 @@ Pull requests welcome. For major changes, open an issue first to discuss propose
 *"From reactive governance to autonomous resilience."*
 
 SentinelGov represents the future of public infrastructure intelligence — where cities think before they flood.
+
+
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/AsyncAwait547/sentinelgov?utm_source=oss&utm_medium=github&utm_campaign=AsyncAwait547%2Fsentinelgov&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)

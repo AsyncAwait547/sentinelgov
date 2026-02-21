@@ -7,13 +7,9 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>SentinelGov Critical Authorization Portal</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <script id="tailwind-config">
         tailwind.config = {
@@ -77,20 +73,26 @@
         <!-- Top Navigation Bar -->
         <header
             class="flex items-center justify-between border-b border-primary/20 bg-background-dark/80 px-8 py-4 backdrop-blur-md">
-            <a href="/" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
-                <div class="text-primary">
-                    <span class="material-symbols-outlined text-3xl">shield_with_heart</span>
-                </div>
-                <div>
-                    <h1 class="text-sm font-bold tracking-[0.2em] text-white opacity-90">SENTINEL-GOV // CRISIS OVERRIDE
-                        PROTOCOL</h1>
-                    <div class="flex items-center gap-2">
-                        <span class="size-2 rounded-full bg-red-500"></span>
-                        <span class="text-[10px] text-red-500 font-bold uppercase tracking-widest">Live Crisis Mode:
-                            Zone 7</span>
+            <div class="flex items-center gap-4">
+                <a href="/"
+                    class="flex items-center gap-1 text-[10px] font-bold uppercase text-slate-400 hover:text-primary transition-colors pr-3 border-r border-primary/20">
+                    <span class="material-symbols-outlined text-[16px]">arrow_back</span> Home
+                </a>
+                <a href="/" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
+                    <div class="text-primary">
+                        <span class="material-symbols-outlined text-3xl">shield_with_heart</span>
                     </div>
-                </div>
-            </a>
+                    <div>
+                        <h1 class="text-sm font-bold tracking-[0.2em] text-white opacity-90">SENTINEL-GOV // CRISIS
+                            OVERRIDE PROTOCOL</h1>
+                        <div class="flex items-center gap-2">
+                            <span class="size-2 rounded-full bg-red-500"></span>
+                            <span class="text-[10px] text-red-500 font-bold uppercase tracking-widest">Live Crisis Mode:
+                                Zone 7</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
             <div class="flex items-center gap-6">
                 <nav class="hidden md:flex items-center gap-8 text-[11px] font-bold tracking-widest text-slate-400">
                     <a class="hover:text-primary transition-colors" href="#">SYSTEM STATUS: OPTIMAL</a>
@@ -110,6 +112,7 @@
                 </div>
             </div>
         </header>
+
         <!-- Main Content Area -->
         <main class="flex flex-1 items-center justify-center p-6 relative">
             <!-- Floating Data Widgets (Left) -->
@@ -130,12 +133,15 @@
                 </div>
                 <div class="glass p-4 rounded-lg">
                     <p class="text-[10px] font-bold text-danger tracking-widest mb-1">SURGE CAPACITY</p>
-                    <p class="text-2xl font-bold text-white tracking-tighter">94.2<span
+                    <p id="rt-auth-surge" class="text-2xl font-bold text-white tracking-tighter">94.2<span
                             class="text-sm ml-1 text-slate-400">%</span></p>
                 </div>
             </div>
+
             <!-- Central Authorization Panel (The Core Piece) -->
             <div class="glass w-full max-w-[900px] rounded-xl overflow-hidden shadow-2xl relative">
+                <!-- Scan Line Animation -->
+                <div class="scan-line animate-[scan_3s_linear_infinite]"></div>
                 <!-- Status Bar -->
                 <div class="bg-red-950/40 border-b border-danger/30 px-6 py-3 flex justify-between items-center">
                     <div class="flex items-center gap-2">
@@ -164,66 +170,49 @@
                                     <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">AI Logic
                                         Path</h4>
                                     <p class="text-sm text-slate-400 leading-relaxed">
-                                        Autonomous multi-agent deployment based on real-time surge telemetry. Immediate
-                                        execution required to prevent primary infrastructure failure at Coastal Sector
-                                        4. High confidence in mitigation strategy.
+                                        Neural consensus achieved across 7 agents. Confidence: <span id="rt-auth-conf"
+                                            class="text-primary font-bold">98.4%</span>. Bayesian risk model confirms
+                                        immediate deployment reduces projected casualty by <span id="rt-auth-risk"
+                                            class="text-primary font-bold">71%</span>.
                                     </p>
                                 </div>
                             </div>
                             <div class="flex gap-4">
                                 <div
                                     class="size-10 rounded bg-primary/5 flex items-center justify-center shrink-0 border border-primary/20">
-                                    <span class="material-symbols-outlined text-primary">location_on</span>
+                                    <span class="material-symbols-outlined text-primary">balance</span>
                                 </div>
                                 <div>
-                                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Impact
-                                        Radius</h4>
-                                    <p class="text-sm text-slate-400">Zone 7 - Delta Sector // Coordinates 40.7128° N,
-                                        74.0060° W</p>
+                                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Ethical
+                                        Override Check</h4>
+                                    <p class="text-sm text-slate-400 leading-relaxed">
+                                        All mandatory ethical guardrails passed. No civilian harm vectors identified.
+                                        Action is within legal operational mandate.
+                                    </p>
                                 </div>
-                            </div>
-                        </div>
-                        <!-- Biometric Section -->
-                        <div class="pt-4 border-t border-primary/10">
-                            <div class="flex items-center justify-between mb-4">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Biometric
-                                    Verification Required</span>
-                                <span class="text-[10px] font-bold text-primary animate-pulse">SYSTEM STANDBY</span>
-                            </div>
-                            <div
-                                class="relative h-24 bg-primary/5 rounded-lg border border-primary/20 flex items-center justify-center overflow-hidden">
-                                <div class="scan-line"></div>
-                                <span class="material-symbols-outlined text-5xl text-primary/40">fingerprint</span>
-                                <div
-                                    class="absolute bottom-2 right-4 text-[9px] font-mono text-primary/60 uppercase tracking-widest">
-                                    Scanner ID: PRX-09</div>
                             </div>
                         </div>
                     </div>
-                    <!-- Right: Impact & Actions -->
-                    <div class="w-full md:w-[320px] flex flex-col gap-6">
-                        <div class="space-y-4">
-                            <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Final
-                                Impact Summary</h4>
-                            <div class="bg-primary/5 border border-primary/20 rounded-lg p-5">
-                                <div class="flex items-end justify-between mb-2">
-                                    <span class="text-xs text-slate-300">Risk Reduction</span>
-                                    <span class="text-2xl font-bold text-primary">82%</span>
-                                </div>
-                                <div class="h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
-                                    <div class="h-full bg-primary rounded-full" style="width: 82%"></div>
-                                </div>
-                                <p class="text-[10px] text-primary/60 mt-2 font-bold uppercase">+14.2% Structural
-                                    Stability</p>
+
+                    <!-- Right: KPIs & Action -->
+                    <div class="w-full md:w-72 flex flex-col gap-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                                <p class="text-[10px] text-slate-500 font-bold mb-1 uppercase">Risk Reduction</p>
+                                <p id="rt-auth-risk-val" class="text-2xl font-bold text-primary">71%</p>
                             </div>
-                            <div class="bg-primary/5 border border-primary/20 rounded-lg p-5">
-                                <div class="flex items-end justify-between mb-2">
-                                    <span class="text-xs text-slate-300">Lives Protected</span>
-                                    <span class="text-2xl font-bold text-primary">45,000</span>
-                                </div>
-                                <p class="text-[10px] text-primary/60 mt-1 font-bold uppercase">100% Evacuation Coverage
-                                </p>
+                            <div class="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                                <p class="text-[10px] text-slate-500 font-bold mb-1 uppercase">Confidence</p>
+                                <p class="text-2xl font-bold text-primary" id="rt-auth-conf2">98.4%</p>
                             </div>
+                        </div>
+                        <div class="bg-primary/5 border border-primary/20 rounded-lg p-5">
+                            <div class="flex items-end justify-between mb-2">
+                                <span class="text-xs text-slate-300">Lives Protected</span>
+                                <span id="rt-auth-lives" class="text-2xl font-bold text-primary">45,000</span>
+                            </div>
+                            <p class="text-[10px] text-primary/60 mt-1 font-bold uppercase">100% Evacuation Coverage
+                            </p>
                         </div>
                         <div class="flex-1"></div>
                         <div class="space-y-3">
@@ -241,6 +230,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- Floating Data Widgets (Right) -->
             <div class="absolute right-10 top-1/2 -translate-y-1/2 flex flex-col gap-4 w-64 opacity-60 items-end">
                 <div class="glass p-4 rounded-lg w-full">
@@ -254,10 +244,11 @@
                 </div>
                 <div class="glass p-4 rounded-lg w-full">
                     <p class="text-[10px] font-bold text-slate-500 tracking-widest mb-1 text-right">SESSION TIME</p>
-                    <p class="text-xl font-mono text-white text-right">00:42:18:04</p>
+                    <p id="rt-auth-session" class="text-xl font-mono text-white text-right">00:42:18:04</p>
                 </div>
             </div>
         </main>
+
         <!-- Footer Bar -->
         <footer
             class="flex items-center justify-between bg-background-dark/90 px-8 py-3 border-t border-primary/10 text-[10px] text-slate-500 tracking-[0.2em] font-bold">

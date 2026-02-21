@@ -67,16 +67,24 @@
     <!-- Top Navigation Bar -->
     <header
         class="flex items-center justify-between border-b border-primary/20 px-6 py-3 bg-panel-dark/80 backdrop-blur-md z-50">
-        <a href="/" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
-            <div class="text-primary size-8 flex items-center justify-center">
-                <span class="material-symbols-outlined text-3xl">shield_locked</span>
-            </div>
-            <div class="flex flex-col">
-                <h2 class="text-primary text-lg font-bold leading-tight tracking-wider uppercase">SENTINELGOV: COMMAND
-                    EXECUTION</h2>
-                <p class="text-[10px] text-primary/60 tracking-[0.2em]">MISSION CODE: NEON VIGIL // OP CENTER ALPHA</p>
-            </div>
-        </a>
+        <div class="flex items-center gap-4">
+            <a href="/"
+                class="flex items-center gap-1 text-[10px] font-bold uppercase text-slate-400 hover:text-primary transition-colors pr-3 border-r border-primary/20">
+                <span class="material-symbols-outlined text-sm">arrow_back</span> Home
+            </a>
+            <a href="/" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
+                <div class="text-primary size-8 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-3xl">shield_locked</span>
+                </div>
+                <div class="flex flex-col">
+                    <h2 class="text-primary text-lg font-bold leading-tight tracking-wider uppercase">SENTINELGOV:
+                        COMMAND
+                        EXECUTION</h2>
+                    <p class="text-[10px] text-primary/60 tracking-[0.2em]">MISSION CODE: NEON VIGIL // OP CENTER ALPHA
+                    </p>
+                </div>
+            </a>
+        </div>
         <div class="flex items-center gap-8">
             <div class="hidden md:flex items-center gap-6">
                 <a class="text-primary/70 hover:text-primary text-xs font-bold tracking-widest transition-colors uppercase"
@@ -245,9 +253,10 @@
                         </div>
                         <div class="space-y-1">
                             <div class="h-1 bg-primary/20 w-full rounded-full overflow-hidden">
-                                <div class="bg-primary h-full w-[72%]"></div>
+                                <div id="rt-exec-bridge-bar"
+                                    class="bg-primary h-full w-[72%] transition-all duration-1000"></div>
                             </div>
-                            <p class="text-[10px] text-slate-200">Bridge Access Lock: 72%</p>
+                            <p id="rt-exec-bridge-text" class="text-[10px] text-slate-200">Bridge Access Lock: 72%</p>
                         </div>
                     </div>
                 </div>
@@ -308,7 +317,7 @@
                         </div>
                         <div class="bg-background-dark/50 p-1.5 rounded border border-primary/10">
                             <p class="text-[8px] text-primary/60 uppercase">Telemetry</p>
-                            <p class="text-[10px] font-bold text-white uppercase">4.2ms Latency</p>
+                            <p id="rt-exec-latency" class="text-[10px] font-bold text-white uppercase">4.2ms Latency</p>
                         </div>
                     </div>
                 </div>
@@ -328,26 +337,27 @@
                         </div>
                     </div>
                     <div class="bg-primary/20 h-1.5 w-full rounded-full overflow-hidden mt-3">
-                        <div class="bg-primary h-full w-[88%]"></div>
+                        <div id="rt-exec-buffer-bar" class="bg-primary h-full w-[88%] transition-all duration-1000">
+                        </div>
                     </div>
                     <div class="flex justify-between mt-1">
                         <span class="text-[8px] text-primary/60">PACKET BUFFER</span>
-                        <span class="text-[8px] text-primary font-bold">88.4% CAP</span>
+                        <span id="rt-exec-buffer-text" class="text-[8px] text-primary font-bold">88.4% CAP</span>
                     </div>
                 </div>
                 <!-- Live Metrics Mini-Panel -->
                 <div class="mt-6 p-4 border border-primary/20 rounded bg-background-dark/50 space-y-4">
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] text-slate-400 uppercase tracking-tighter">Global Packet Success</span>
-                        <span class="text-xs text-primary font-mono">99.998%</span>
+                        <span id="rt-exec-success" class="text-xs text-primary font-mono">99.998%</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] text-slate-400 uppercase tracking-tighter">Encrypted Handshakes</span>
-                        <span class="text-xs text-primary font-mono">1,402 / SEC</span>
+                        <span id="rt-exec-handshakes" class="text-xs text-primary font-mono">1,402 / SEC</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] text-slate-400 uppercase tracking-tighter">Infrastructure Nodes</span>
-                        <span class="text-xs text-primary font-mono">ACTIVE (42)</span>
+                        <span id="rt-exec-nodes" class="text-xs text-primary font-mono">ACTIVE (42)</span>
                     </div>
                 </div>
             </div>
@@ -377,11 +387,12 @@
                         <span class="text-[10px] font-mono text-primary/60 animate-pulse">01011001 01100101
                             01110011</span>
                     </div>
-                    <span class="text-primary text-xl font-bold font-mono">68.2%</span>
+                    <span id="rt-exec-progress-text" class="text-primary text-xl font-bold font-mono">68.2%</span>
                 </div>
                 <div class="h-6 w-full bg-primary/10 border border-primary/30 rounded relative overflow-hidden">
                     <!-- Progress Bar Inner Animation Mock -->
-                    <div class="h-full bg-primary/40 w-[68%] transition-all duration-1000"></div>
+                    <div id="rt-exec-progress-bar" class="h-full bg-primary/40 w-[68%] transition-all duration-1000">
+                    </div>
                     <!-- Segment Lines -->
                     <div class="absolute inset-0 flex justify-between px-1 pointer-events-none">
                         <div class="w-[1px] h-full bg-background-dark/40"></div>
@@ -399,7 +410,7 @@
             </div>
             <div class="w-48 bg-primary/5 border-l border-primary/20 flex flex-col justify-center px-4 font-mono">
                 <span class="text-[9px] text-primary uppercase font-bold">Bitrate Stream</span>
-                <span class="text-sm text-slate-100">8.4 GB / S</span>
+                <span id="rt-exec-bitrate" class="text-sm text-slate-100">8.4 GB / S</span>
             </div>
         </div>
         <!-- Flickering Data Packet Text Overlay -->

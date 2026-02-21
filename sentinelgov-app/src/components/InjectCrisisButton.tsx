@@ -25,7 +25,11 @@ export function InjectCrisisButton() {
                 <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => useSystemStore.getState().resetSystem()}
+                    onClick={() => {
+                        const s = useSystemStore.getState();
+                        if (s.socketInstance) s.socketInstance.emit('crisis:resolve');
+                        s.resetSystem();
+                    }}
                     className="w-full h-14 bg-emerald-600/20 border-2 border-emerald-500/40 text-emerald-400 font-bold tracking-widest text-xs rounded-lg flex items-center justify-center gap-3 uppercase cursor-pointer hover:bg-emerald-600/30 transition-colors"
                 >
                     <RotateCcw className="w-4 h-4" />
@@ -35,7 +39,15 @@ export function InjectCrisisButton() {
                 <motion.button
                     whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(255, 0, 60, 0.35)' }}
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => runCrisisSequence()}
+                    onClick={() => {
+                        const socket = useSystemStore.getState().socketInstance;
+                        if (socket) {
+                            socket.emit('crisis:inject');
+                        } else {
+                            // Fallback if websocket is somehow offline
+                            runCrisisSequence();
+                        }
+                    }}
                     className="w-full h-14 bg-transparent border-2 border-[#ff003c]/40 text-[#ff003c] font-black tracking-[0.15em] text-xs rounded-lg flex items-center justify-center gap-3 uppercase cursor-pointer shadow-[0_0_15px_rgba(255,0,60,0.15)] hover:bg-[#ff003c]/5 transition-all"
                 >
                     <AlertOctagon className="w-5 h-5 animate-pulse" />
@@ -58,7 +70,11 @@ export function InjectCrisisButton() {
                 <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => useSystemStore.getState().resetSystem()}
+                    onClick={() => {
+                        const s = useSystemStore.getState();
+                        if (s.socketInstance) s.socketInstance.emit('crisis:resolve');
+                        s.resetSystem();
+                    }}
                     disabled={isRunning}
                     className="flex-1 h-9 glass-panel border border-slate-600/50 text-slate-400 text-[10px] font-bold tracking-widest uppercase rounded-lg flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-600/10 transition disabled:opacity-30 disabled:cursor-not-allowed"
                 >

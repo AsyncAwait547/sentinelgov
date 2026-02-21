@@ -55,6 +55,7 @@ export interface SystemState {
     humanInLoop: boolean;
     demoMode: boolean;
     wsConnected: boolean;
+    socketInstance: any;
 
     // Crisis
     crisisStatus: CrisisStatus;
@@ -103,6 +104,7 @@ export interface SystemState {
     setHumanInLoop: (v: boolean) => void;
     setDemoMode: (v: boolean) => void;
     setWsConnected: (v: boolean) => void;
+    setSocketInstance: (s: any) => void;
     resetSystem: () => void;
 }
 
@@ -131,6 +133,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     humanInLoop: true,
     demoMode: false,
     wsConnected: false,
+    socketInstance: null,
 
     crisisStatus: 'idle',
     riskLevel: 12,
@@ -209,6 +212,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     setHumanInLoop: (v) => set({ humanInLoop: v }),
     setDemoMode: (v) => set({ demoMode: v }),
     setWsConnected: (v) => set({ wsConnected: v }),
+    setSocketInstance: (s) => set({ socketInstance: s }),
 
     resetSystem: () =>
         set({

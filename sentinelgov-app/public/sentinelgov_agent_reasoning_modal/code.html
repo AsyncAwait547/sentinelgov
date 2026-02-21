@@ -138,6 +138,13 @@
     </div>
     <!-- Overlay Tint -->
     <div class="absolute inset-0 bg-black/60 z-10 backdrop-blur-[2px]"></div>
+
+    <!-- Top Left Home Button -->
+    <a href="/"
+        class="absolute top-6 left-6 z-50 flex items-center gap-2 text-slate-300 hover:text-primary transition-colors font-bold uppercase tracking-wider text-[10px] bg-[#0f172a]/80 px-4 py-2 rounded border border-[#3a5355] hover:border-primary/50 backdrop-blur">
+        <span class="material-symbols-outlined text-[16px]">arrow_back</span> Back to Home
+    </a>
+
     <!-- Main Modal Container -->
     <div class="relative z-20 flex h-full w-full items-center justify-center p-4">
         <!-- Modal Card -->
@@ -272,7 +279,7 @@
                     <div class="flex flex-col gap-1">
                         <span class="text-[10px] font-medium uppercase text-slate-400">Latency</span>
                         <div class="flex items-baseline gap-1">
-                            <span class="text-xl font-bold text-white">12<span
+                            <span id="rt-latency" class="text-xl font-bold text-white">12<span
                                     class="text-sm font-normal text-slate-400">ms</span></span>
                             <span class="text-[10px] text-primary">▼ 2ms</span>
                         </div>
@@ -280,7 +287,7 @@
                     <div class="flex flex-col gap-1 border-l border-[#3a5355] pl-4">
                         <span class="text-[10px] font-medium uppercase text-slate-400">Compute Load</span>
                         <div class="flex items-baseline gap-1">
-                            <span class="text-xl font-bold text-white">42<span
+                            <span id="rt-compute" class="text-xl font-bold text-white">42<span
                                     class="text-sm font-normal text-slate-400">%</span></span>
                             <span class="text-[10px] text-emerald-400">Optimal</span>
                         </div>
@@ -288,7 +295,7 @@
                     <div class="flex flex-col gap-1 border-l border-[#3a5355] pl-4">
                         <span class="text-[10px] font-medium uppercase text-slate-400">Agents Active</span>
                         <div class="flex items-baseline gap-1">
-                            <span class="text-xl font-bold text-white">4<span
+                            <span id="rt-agents" class="text-xl font-bold text-white">4<span
                                     class="text-sm font-normal text-slate-400">/4</span></span>
                             <span class="text-[10px] text-primary">Synced</span>
                         </div>
@@ -337,7 +344,8 @@
                             <div class="h-2 w-2 rounded-full bg-slate-600"></div>
                         </div>
                     </div>
-                    <div class="custom-scrollbar flex-1 overflow-y-auto p-4 font-mono text-xs leading-relaxed">
+                    <div id="rt-reasoning-log"
+                        class="custom-scrollbar flex-1 overflow-y-auto p-4 font-mono text-xs leading-relaxed">
                         <div class="mb-2 flex gap-2 opacity-60">
                             <span class="text-primary">&gt;</span>
                             <span class="text-slate-300">00:01:42 <span class="text-slate-500">INIT</span> Threat vector

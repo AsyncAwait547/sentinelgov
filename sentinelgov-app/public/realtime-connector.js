@@ -346,26 +346,63 @@
 
     // -- Execution Command View --
     function updateExecution() {
-        // Mitigation success
-        document.querySelectorAll('span').forEach(el => {
-            if (el.textContent.match(/^\d+\.\d+%$/) && el.closest('.text-xl')) {
-                el.textContent = kpiState.mitigationSuccess.toFixed(1) + '%';
-            }
-        });
+        const rtLatency = document.getElementById('rt-exec-latency');
+        if (rtLatency) {
+            const lat = telemetry?.networkLatency || randomInt(2, 12);
+            rtLatency.textContent = `${lat.toFixed(1)}ms Latency`;
+        }
 
-        // Progress bars
-        document.querySelectorAll('div').forEach(el => {
-            if (el.style.width || el.className.includes('w-[')) {
-                const match = el.className.match(/w-\[(\d+)%\]/);
-                if (match && el.classList.contains('bg-primary') || el.classList.contains('bg-primary/40')) {
-                    const base = parseInt(match?.[1] || '50');
-                    const delta = randomInt(-3, 3);
-                    const newW = Math.max(10, Math.min(98, base + delta));
-                    el.style.width = newW + '%';
-                    el.style.transition = 'width 2s ease-out';
-                }
+        const rtBridgeText = document.getElementById('rt-exec-bridge-text');
+        const rtBridgeBar = document.getElementById('rt-exec-bridge-bar');
+        if (rtBridgeText && rtBridgeBar) {
+            const bridge = crisisActive ? 100 : kpiState.bridgeLock;
+            rtBridgeText.textContent = `Bridge Access Lock: ${bridge}%`;
+            rtBridgeBar.style.width = `${bridge}%`;
+        }
+
+        const rtBufferText = document.getElementById('rt-exec-buffer-text');
+        const rtBufferBar = document.getElementById('rt-exec-buffer-bar');
+        if (rtBufferText && rtBufferBar) {
+            const cap = kpiState.resourceCap.toFixed(1);
+            rtBufferText.textContent = `${cap}% CAP`;
+            rtBufferBar.style.width = `${cap}%`;
+        }
+
+        const rtSuccess = document.getElementById('rt-exec-success');
+        if (rtSuccess) {
+            rtSuccess.textContent = `${kpiState.uptime.toFixed(3)}%`;
+        }
+
+        const rtHandshakes = document.getElementById('rt-exec-handshakes');
+        if (rtHandshakes) {
+            const shakes = crisisActive ? randomInt(4000, 9000) : randomInt(800, 1600);
+            rtHandshakes.textContent = `${shakes.toLocaleString()} / SEC`;
+        }
+
+        const rtNodes = document.getElementById('rt-exec-nodes');
+        if (rtNodes) {
+            const activeNodes = crisisActive ? 42 : randomInt(40, 42);
+            rtNodes.textContent = `ACTIVE (${activeNodes})`;
+        }
+
+        const rtProgText = document.getElementById('rt-exec-progress-text');
+        const rtProgBar = document.getElementById('rt-exec-progress-bar');
+        if (rtProgText && rtProgBar) {
+            let prog = 0;
+            if (crisisActive) {
+                // simple simulated progress if crisis is active based on time
+                const elapsed = (Date.now() - startTime) / 1000;
+                prog = Math.min(100, (elapsed / 30) * 100);
             }
-        });
+            rtProgText.textContent = `${prog.toFixed(1)}%`;
+            rtProgBar.style.width = `${prog}%`;
+        }
+
+        const rtBitrate = document.getElementById('rt-exec-bitrate');
+        if (rtBitrate) {
+            const bit = crisisActive ? (12 + Math.random() * 4).toFixed(1) : (2 + Math.random() * 2).toFixed(1);
+            rtBitrate.textContent = `${bit} GB / S`;
+        }
 
         // Bridge Access Lock percentage text
         document.querySelectorAll('p').forEach(el => {
@@ -404,6 +441,7 @@
     }
 
     // -- Authorization Portal --
+    let authSessionStart = Date.now();
     function updateAuthorization() {
         // Countdown timer
         document.querySelectorAll('p').forEach(el => {
@@ -418,33 +456,46 @@
             }
         });
 
-        // Projected improvement percentage
-        document.querySelectorAll('span').forEach(el => {
-            if (el.textContent.match(/^\d+%$/) && el.classList.contains('text-2xl')) {
-                el.textContent = kpiState.projectedImprovement + '%';
-                // Update matching progress bar
-                const container = el.closest('div');
-                if (container) {
-                    const bar = container.querySelector('.bg-primary.rounded-full');
-                    if (bar) {
-                        bar.style.width = kpiState.projectedImprovement + '%';
-                        bar.style.transition = 'width 2s ease-out';
-                    }
-                }
-            }
-        });
+        const rtSurge = document.getElementById('rt-auth-surge');
+        if (rtSurge) {
+            const surge = crisisActive ? (90 + Math.random() * 8.5).toFixed(1) : (30 + Math.random() * 5).toFixed(1);
+            rtSurge.innerHTML = `${surge}<span class="text-sm ml-1 text-slate-400">%</span>`;
+        }
 
-        // Structural gain
-        document.querySelectorAll('p').forEach(el => {
-            if (el.textContent.includes('Structural')) {
-                const gain = '+' + kpiState.structuralGain.toFixed(1) + '% Structural';
-                const remaining = el.textContent.split('Structural')[1] || '';
-                el.textContent = gain + remaining;
-            }
-        });
+        const riskVal = telemetry?.metrics?.riskReduction || randomInt(8, 85);
+
+        const rtRiskText = document.getElementById('rt-auth-risk-val');
+        if (rtRiskText) rtRiskText.textContent = `${riskVal}%`;
+
+        const rtRiskBar = document.getElementById('rt-auth-risk-bar');
+        if (rtRiskBar) rtRiskBar.style.width = `${riskVal}%`;
+
+        const rtStructural = document.getElementById('rt-auth-structural');
+        if (rtStructural) {
+            const struct = (riskVal * 0.17).toFixed(1);
+            rtStructural.textContent = `+${struct}% Structural Stability`;
+        }
+
+        const rtLives = document.getElementById('rt-auth-lives');
+        if (rtLives) {
+            const lives = telemetry?.metrics?.populationProtected || randomInt(12000, 50000);
+            rtLives.textContent = lives.toLocaleString();
+        }
+
+        const rtSession = document.getElementById('rt-auth-session');
+        if (rtSession) {
+            const elapsed = Math.floor((Date.now() - authSessionStart) / 1000);
+            const hrs = pad(Math.floor(elapsed / 3600));
+            const mins = pad(Math.floor((elapsed % 3600) / 60));
+            const secs = pad(elapsed % 60);
+            const ms = pad(Math.floor((Date.now() % 1000) / 10)); // just visual fake ms
+            rtSession.textContent = `${hrs}:${mins}:${secs}:${ms}`;
+        }
     }
 
     // -- Reasoning Modal --
+    let lastReasoningLogTime = 0;
+
     function updateReasoning() {
         // Consensus success rate
         document.querySelectorAll('span, div, p').forEach(el => {
@@ -459,20 +510,97 @@
                 el.textContent = kpiState.consensusRate.toFixed(1) + '%';
             }
         });
+
+        // Dynamic Top KPIs
+        const rtLatency = document.getElementById('rt-latency');
+        if (rtLatency) {
+            const val = telemetry ? telemetry.networkLatency : randomInt(8, 22);
+            rtLatency.innerHTML = `${val}<span class="text-sm font-normal text-slate-400">ms</span>`;
+        }
+
+        const rtCompute = document.getElementById('rt-compute');
+        if (rtCompute) {
+            const val = telemetry ? telemetry.cpuUsage : randomInt(35, 65);
+            rtCompute.innerHTML = `${val}<span class="text-sm font-normal text-slate-400">%</span>`;
+        }
+
+        const rtAgents = document.getElementById('rt-agents');
+        if (rtAgents) {
+            const val = crisisActive ? randomInt(2, 4) : 4;
+            rtAgents.innerHTML = `${val}<span class="text-sm font-normal text-slate-400">/4</span>`;
+        }
+
+        // Dynamic AI Reasoning Log Injection
+        const logContainer = document.getElementById('rt-reasoning-log');
+        if (logContainer && crisisActive) {
+            const now = Date.now();
+            if (now - lastReasoningLogTime > 4000) {
+                lastReasoningLogTime = now;
+                const agents = [
+                    { name: 'RISK', color: 'text-yellow-500' },
+                    { name: 'SIM', color: 'text-blue-400' },
+                    { name: 'ORCH', color: 'text-primary' },
+                    { name: 'SNTL', color: 'text-emerald-400' }
+                ];
+                const msgs = [
+                    'Recalculating Monte Carlo spread (n=5000)...',
+                    'Anomaly propagation isolated to sector 7.',
+                    'Diverting compute nodes to predictive modeling.',
+                    'Consensus threshold dropping due to variance.',
+                    'Adjusting mitigation boundaries.',
+                    'New probabilistic model loaded: Gamma-4',
+                ];
+                const agent = agents[Math.floor(Math.random() * agents.length)];
+                const msg = msgs[Math.floor(Math.random() * msgs.length)];
+
+                const logEl = document.createElement('div');
+                logEl.className = 'mb-2 flex gap-2 opacity-80';
+                logEl.innerHTML = `
+                    <span class="text-primary">&gt;</span>
+                    <span class="text-slate-300">${utcNow().split(' ')[0]} <span class="${agent.color}">${agent.name}</span> ${msg}</span>
+                `;
+
+                // Add before the blinking cursor
+                const pulseCursor = logContainer.querySelector('.animate-pulse');
+                if (pulseCursor) {
+                    pulseCursor.parentNode.insertBefore(logEl, pulseCursor);
+                } else {
+                    logContainer.appendChild(logEl);
+                }
+
+                logContainer.scrollTop = logContainer.scrollHeight;
+
+                // Keep only last 15
+                const logs = logContainer.querySelectorAll('.mb-2.flex');
+                if (logs.length > 15 && logs[0] !== pulseCursor) {
+                    logs[0].remove();
+                }
+            }
+        }
     }
 
     // -- Agent Decision Logic --
     function updateDecisionLogic() {
-        // Fluctuate probability values shown in the decision tree
-        document.querySelectorAll('span, p, div').forEach(el => {
-            const text = el.textContent.trim();
-            if (text.match(/^0\.\d{2}$/) && el.children.length === 0) {
-                const current = parseFloat(text);
-                const delta = (Math.random() - 0.5) * 0.04;
-                const newVal = Math.max(0.01, Math.min(0.99, current + delta));
-                el.textContent = newVal.toFixed(2);
-            }
-        });
+        const rtDecConf = document.getElementById('rt-dec-conf');
+        if (rtDecConf) rtDecConf.textContent = `CONFIDENCE: ${kpiState.consensusRate.toFixed(1)}%`;
+
+        const rtProjFail = document.getElementById('rt-dec-proj-fail');
+        if (rtProjFail) rtProjFail.textContent = '+' + (100 + Math.random() * 15).toFixed(1) + '%';
+
+        const rtGridFail = document.getElementById('rt-dec-grid-fail');
+        if (rtGridFail) rtGridFail.textContent = (8 + Math.random() * 8).toFixed(1) + '% (Critical)';
+
+        const rtCascadeFail = document.getElementById('rt-dec-cascade-fail');
+        if (rtCascadeFail) rtCascadeFail.textContent = (98 + Math.random() * 2).toFixed(2) + '%';
+
+        const rtProjSuccess = document.getElementById('rt-dec-proj-success');
+        if (rtProjSuccess) rtProjSuccess.textContent = '+' + (70 + Math.random() * 18).toFixed(1) + '%';
+
+        const rtGridSuccess = document.getElementById('rt-dec-grid-success');
+        if (rtGridSuccess) rtGridSuccess.textContent = (90 + Math.random() * 8).toFixed(1) + '% (Stable)';
+
+        const rtCascadeSuccess = document.getElementById('rt-dec-cascade-success');
+        if (rtCascadeSuccess) rtCascadeSuccess.textContent = (0.01 + Math.random() * 0.08).toFixed(2) + '%';
     }
 
     // ── DYNAMIC AGENT LOG INJECTION ─────────────────────────
@@ -480,6 +608,7 @@
     let logInjectionInterval = null;
 
     function findLogContainer() {
+        if (document.getElementById('rt-cc-log')) return document.getElementById('rt-cc-log');
         // Look for scrollable log containers
         const candidates = document.querySelectorAll('.overflow-y-auto');
         for (const c of candidates) {
@@ -498,22 +627,19 @@
         logEl.className = `p-3 rounded ${log.severity === 'critical' ? 'bg-red-900/10 border border-red-500/30' : 'bg-slate-800/50 border border-slate-700/50 hover:border-primary/50'} transition-colors group`;
         logEl.style.opacity = '0';
         logEl.style.transform = 'translateY(-10px)';
-        logEl.style.transition = 'all 0.5s ease-out';
+        logEl.style.transition = 'all 0.3s ease-out';
+
+        const timestamp = utcNow().split(' ')[0];
 
         logEl.innerHTML = `
             <div class="flex justify-between mb-1">
-                <span class="${log.color} font-bold">${log.agent}</span>
-                <span class="text-slate-500">${log.time}</span>
+                <span class="${log.severity === 'critical' ? 'text-red-400' : 'text-primary'} font-bold">${log.agent}</span>
+                <span class="text-slate-500">${timestamp}</span>
             </div>
-            <p class="text-slate-300 group-hover:text-white transition-colors">${log.message}</p>
-            ${log.severity === 'critical' ? '' : `
-            <div class="mt-2 w-full bg-slate-700 h-1 rounded-full overflow-hidden">
-                <div class="bg-primary h-full animate-pulse" style="width: ${randomInt(30, 100)}%"></div>
-            </div>`}
+            <p class="${log.severity === 'critical' ? 'text-red-300' : 'text-slate-300 group-hover:text-white'} transition-colors">${log.message}</p>
         `;
 
-        // Insert at top
-        logContainer.insertBefore(logEl, logContainer.firstChild);
+        logContainer.prepend(logEl);
 
         // Animate in
         requestAnimationFrame(() => {
@@ -521,13 +647,9 @@
             logEl.style.transform = 'translateY(0)';
         });
 
-        // Remove old entries to prevent memory buildup
-        while (logContainer.children.length > 15) {
-            const last = logContainer.lastElementChild;
-            if (last) {
-                last.style.opacity = '0';
-                setTimeout(() => last.remove(), 300);
-            }
+        // Keep only newest 10 logs
+        while (logContainer.children.length > 10) {
+            logContainer.lastElementChild.remove();
         }
 
         // Update log count in header if present
@@ -695,6 +817,56 @@
         }
     }
 
+    // -- Control Center Explicit Updates --
+    let ccStartTime = Date.now();
+    function updateControlCenter() {
+        const rtTime = document.getElementById('rt-cc-time');
+        if (rtTime) rtTime.textContent = utcNow();
+
+        const rtLat = document.getElementById('rt-cc-latency');
+        if (rtLat) {
+            const lat = telemetry?.networkLatency || randomInt(8, 20);
+            rtLat.textContent = `${lat}ms`;
+        }
+
+        const rtThreat = document.getElementById('rt-cc-threat');
+        if (rtThreat) {
+            const threat = crisisActive ? randomInt(70, 95) : randomInt(5, 15);
+            rtThreat.textContent = `${threat}%`;
+        }
+
+        const rtPop = document.getElementById('rt-cc-pop');
+        if (rtPop) {
+            const pop = telemetry?.metrics?.populationProtected || (crisisActive ? randomInt(10000, 45000) : randomInt(0, 100));
+            rtPop.textContent = pop.toLocaleString();
+        }
+
+        const rtUnits = document.getElementById('rt-cc-units');
+        if (rtUnits) {
+            const active = crisisActive ? 52 : randomInt(40, 52);
+            rtUnits.textContent = `${active}/52`;
+        }
+
+        const rtDamage = document.getElementById('rt-cc-damage');
+        if (rtDamage) {
+            const damage = telemetry?.metrics?.damagePrevented || randomInt(1, 10);
+            rtDamage.textContent = `$${damage.toFixed(1)}M`;
+        }
+
+        const rtTimer = document.getElementById('rt-cc-timer');
+        if (rtTimer) {
+            if (!crisisActive) {
+                rtTimer.textContent = '00:00:00';
+            } else {
+                const elapsed = Math.max(0, 8040 - Math.floor((Date.now() - ccStartTime) / 1000));
+                const h = pad(Math.floor(elapsed / 3600));
+                const m = pad(Math.floor((elapsed % 3600) / 60));
+                const s = pad(elapsed % 60);
+                rtTimer.textContent = `${h}:${m}:${s}`;
+            }
+        }
+    }
+
     // ── MAIN UPDATE LOOP ────────────────────────────────────
     function updateAll() {
         updateAllClocks();
@@ -710,8 +882,9 @@
         }
 
         if (url.includes('control_center_dashboard') || title.includes('dashboard')) {
-            updateDashboard();
+            updateDashboard(); // Keep existing Dashboard updates
             updateLogTimestamps();
+            updateControlCenter(); // Add explicit ID bound updates
         }
 
         if (url.includes('execution_command') || title.includes('execution')) {

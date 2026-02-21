@@ -127,6 +127,10 @@
     <nav
         class="h-16 w-full glass-panel border-b border-glass-border flex items-center justify-between px-6 z-50 shrink-0">
         <div class="flex items-center gap-4">
+            <a href="/"
+                class="flex items-center gap-1 text-[10px] font-bold uppercase text-slate-400 hover:text-primary transition-colors pr-3 border-r border-slate-700/50">
+                <span class="material-icons-round text-sm">arrow_back</span> Home
+            </a>
             <a href="/" class="flex items-center gap-2 cursor-pointer">
                 <span class="material-icons-round text-primary text-3xl animate-pulse">security</span>
                 <h1 class="font-display font-bold text-2xl tracking-widest text-slate-900 dark:text-white">
@@ -144,7 +148,7 @@
         <div class="flex items-center gap-8">
             <div class="text-center">
                 <p class="text-[10px] uppercase text-slate-500 dark:text-slate-400 tracking-wider">System Time</p>
-                <p class="font-mono text-sm font-bold text-primary">14:42:09 UTC</p>
+                <p id="rt-cc-time" class="font-mono text-sm font-bold text-primary">14:42:09 UTC</p>
             </div>
             <div class="flex items-center gap-3">
                 <span
@@ -185,7 +189,7 @@
                     <span
                         class="text-[10px] px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">LIVE</span>
                 </div>
-                <div class="flex-1 overflow-y-auto space-y-3 pr-2 font-mono text-xs">
+                <div id="rt-cc-log" class="flex-1 overflow-y-auto space-y-3 pr-2 font-mono text-xs">
                     <a href="/sentinelgov_agent_decision_logic_view/code.html"
                         class="block p-3 rounded bg-slate-800/50 border border-slate-700/50 hover:border-primary/50 transition-colors group cursor-pointer">
                         <div class="flex justify-between mb-1">
@@ -249,7 +253,7 @@
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-500 font-mono">
                     <span>node-01</span>
-                    <span class="text-primary">12ms</span>
+                    <span id="rt-cc-latency" class="text-primary">12ms</span>
                 </div>
             </div>
         </section>
@@ -322,7 +326,7 @@
                         </circle>
                     </svg>
                     <div class="absolute flex flex-col items-center">
-                        <span class="text-4xl font-display font-bold text-white">75%</span>
+                        <span id="rt-cc-threat" class="text-4xl font-display font-bold text-white">75%</span>
                         <span
                             class="text-xs text-red-400 font-bold uppercase tracking-wider animate-pulse">CRITICAL</span>
                     </div>
@@ -386,7 +390,8 @@
             class="glass-panel rounded-xl p-4 flex items-center justify-between group hover:bg-slate-800/80 transition-all cursor-pointer border-t-2 border-t-transparent hover:border-t-primary">
             <div>
                 <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">Pop. Affected</p>
-                <h4 class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors">12,405
+                <h4 id="rt-cc-pop"
+                    class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors">12,405
                 </h4>
                 <p class="text-xs text-red-400 flex items-center gap-1 mt-1">
                     <span class="material-icons-round text-sm">trending_up</span> +5.2%
@@ -401,7 +406,8 @@
             class="glass-panel rounded-xl p-4 flex items-center justify-between group hover:bg-slate-800/80 transition-all cursor-pointer border-t-2 border-t-transparent hover:border-t-primary">
             <div>
                 <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">Response Units</p>
-                <h4 class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors">48/52
+                <h4 id="rt-cc-units"
+                    class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors">48/52
                 </h4>
                 <p class="text-xs text-emerald-400 flex items-center gap-1 mt-1">
                     <span class="material-icons-round text-sm">check_circle</span> 92% Active
@@ -416,7 +422,8 @@
             class="glass-panel rounded-xl p-4 flex items-center justify-between group hover:bg-slate-800/80 transition-all cursor-pointer border-t-2 border-t-transparent hover:border-t-primary">
             <div>
                 <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">Est. Damage</p>
-                <h4 class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors">$4.2M
+                <h4 id="rt-cc-damage"
+                    class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors">$4.2M
                 </h4>
                 <p class="text-xs text-slate-400 flex items-center gap-1 mt-1">
                     <span class="material-icons-round text-sm">remove</span> Stable
@@ -431,7 +438,7 @@
             class="glass-panel rounded-xl p-4 flex items-center justify-between group hover:bg-slate-800/80 transition-all cursor-pointer border-t-2 border-t-transparent hover:border-t-primary">
             <div>
                 <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">Time to Critical</p>
-                <h4
+                <h4 id="rt-cc-timer"
                     class="text-3xl font-display font-bold text-white group-hover:text-primary transition-colors font-mono">
                     02:14:00</h4>
                 <p class="text-xs text-orange-400 flex items-center gap-1 mt-1">

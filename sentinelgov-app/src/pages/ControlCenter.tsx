@@ -10,7 +10,7 @@ import { MetricsPanel } from '../components/MetricsPanel';
 import { GovernancePanel } from '../components/GovernancePanel';
 import { InjectCrisisButton } from '../components/InjectCrisisButton';
 import {
-    Shield, Bell, Settings, Wifi, WifiOff, ChevronDown, ExternalLink,
+    Shield, Bell, Settings, Wifi, WifiOff, ChevronDown, ExternalLink, ChevronLeft
 } from 'lucide-react';
 
 const pageLinks = [
@@ -53,12 +53,41 @@ export function ControlCenter() {
                 useSystemStore.getState().setSystemStatus('degraded');
             });
 
+            useSystemStore.getState().setSocketInstance(socket);
+
             socket.on('telemetry:update', (data: any) => {
                 setTelemetry(data);
+                if (data.metrics) {
+                    useSystemStore.getState().setMetrics(data.metrics);
+                    if (data.metrics.riskLevel !== undefined) {
+                        useSystemStore.getState().setRiskLevel(data.metrics.riskLevel);
+                    }
+                }
             });
 
             socket.on('crisis:serverLog', (data: any) => {
                 useSystemStore.getState().addLog(data.agent, data.message, data.severity);
+            });
+
+            socket.on('crisis:acknowledged', () => {
+                useSystemStore.getState().setCrisisStatus('detected');
+            });
+
+            socket.on('crisis:serverPhase', (data: any) => {
+                const s = useSystemStore.getState();
+                s.setCrisisStatus(data.status);
+                if (data.affectedZone) {
+                    s.setZoneStatus(data.affectedZone, data.status === 'resolved' ? 'normal' : 'critical', Math.floor(60 + Math.random() * 30));
+                    s.setAffectedZones([data.affectedZone]);
+                } else if (data.status === 'resolved') {
+                    s.zones.forEach((z) => {
+                        s.setZoneStatus(z.id, 'normal', Math.floor(5 + Math.random() * 10));
+                    });
+                }
+            });
+
+            socket.on('crisis:serverMitigationPlan', (data: any) => {
+                useSystemStore.getState().setMitigationPlan(data);
             });
         } catch {
             useSystemStore.getState().setWsConnected(false);
@@ -99,6 +128,9 @@ export function ControlCenter() {
             <nav className={`h-14 w-full glass-panel border-b flex items-center justify-between px-5 z-50 shrink-0 transition-colors duration-500 ${isCrisisActive ? 'border-red-500/30' : 'border-primary/10'
                 }`}>
                 <div className="flex items-center gap-3">
+                    <a href="/" className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-primary transition-colors pr-3 border-r border-slate-700/50">
+                        <ChevronLeft className="w-3 h-3" /> Home
+                    </a>
                     <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                         <Shield className={`w-7 h-7 ${isCrisisActive ? 'text-red-500 animate-pulse' : 'text-primary'}`} />
                         <h1 className="font-display font-bold text-xl tracking-[0.15em] text-white">
