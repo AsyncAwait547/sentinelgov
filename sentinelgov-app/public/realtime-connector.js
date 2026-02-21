@@ -627,6 +627,74 @@
         }
     }
 
+    // -- Landing Page --
+    function updateLandingPage() {
+        // Active Agents
+        document.querySelectorAll('.font-mono').forEach(el => {
+            if (el.textContent.includes('Units')) {
+                // To keep numbers around ~14000
+                const agents = Math.round(14000 + (telemetry ? telemetry.activeConnections : randomInt(120, 160)));
+                el.textContent = formatNumber(agents) + ' Units';
+            }
+            // Flooding Risk
+            if (el.textContent.includes('Flooding Risk')) {
+                const risk = Math.round(kpiState.threatIndex);
+                el.textContent = 'Flooding Risk: ' + risk + '%';
+                // update width
+                const barContainer = el.parentElement?.parentElement?.nextElementSibling;
+                if (barContainer) {
+                    const bar = barContainer.firstElementChild;
+                    if (bar) {
+                        bar.style.width = risk + '%';
+                        bar.style.transition = 'width 1s ease-out';
+                        if (crisisActive) {
+                            bar.style.backgroundColor = '#ef4444'; // red
+                            el.parentElement.parentElement.parentElement.classList.add('shadow-[0_0_20px_rgba(239,68,68,0.5)]');
+                        } else {
+                            bar.style.backgroundColor = '#3b82f6'; // blue
+                            el.parentElement.parentElement.parentElement.classList.remove('shadow-[0_0_20px_rgba(239,68,68,0.5)]');
+                        }
+                    }
+                }
+            }
+        });
+
+        // 99.9% Uptime and 50ms latency
+        document.querySelectorAll('.text-3xl').forEach(el => {
+            if (el.textContent.includes('99.')) {
+                el.textContent = kpiState.uptime + '%';
+            }
+            if (el.textContent.match(/^\d+ms$/)) {
+                el.textContent = (telemetry ? telemetry.networkLatency : randomInt(8, 22)) + 'ms';
+            }
+        });
+
+        // Pulse bars for Active Agents
+        const pulseBars = document.querySelectorAll('.bg-primary\\/50, .bg-primary\\/80, .bg-primary\\/30, .bg-primary\\/60');
+        pulseBars.forEach(bar => {
+            if (bar.classList.contains('w-1')) {
+                const h = randomInt(8, 24);
+                bar.style.height = h + 'px';
+                bar.style.transition = 'height 0.2s ease-in-out';
+                if (crisisActive) bar.style.backgroundColor = 'rgba(239, 68, 68, 0.8)';
+                else bar.style.backgroundColor = '';
+            }
+        });
+
+        // Alert text
+        const alertEl = document.querySelector('.text-red-300, .text-primary');
+        if (alertEl && alertEl.textContent.includes('Node') || alertEl?.textContent.includes('Alert') || alertEl?.textContent.includes('Monitor')) {
+            const cities = ['Delhi Node', 'Coastal Sector 4', 'Ward 12', 'North Bridge', 'Sector 7'];
+            if (crisisActive) {
+                alertEl.textContent = 'Alert: ' + cities[randomInt(0, cities.length)];
+                alertEl.className = alertEl.className.replace('text-primary', 'text-red-300');
+            } else {
+                alertEl.textContent = 'Monitoring: ' + cities[randomInt(0, cities.length)];
+                alertEl.className = alertEl.className.replace('text-red-300', 'text-primary');
+            }
+        }
+    }
+
     // ── MAIN UPDATE LOOP ────────────────────────────────────
     function updateAll() {
         updateAllClocks();
@@ -636,6 +704,10 @@
         // Detect which page we're on and apply specific updates
         const title = document.title.toLowerCase();
         const url = window.location.pathname.toLowerCase();
+
+        if (url === '/' || url.endsWith('/index.html') || url === '') {
+            updateLandingPage();
+        }
 
         if (url.includes('control_center_dashboard') || title.includes('dashboard')) {
             updateDashboard();
