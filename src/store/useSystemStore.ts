@@ -61,6 +61,7 @@ export interface SystemState {
     // System
     systemStatus: 'online' | 'offline' | 'degraded';
     humanInLoop: boolean;
+    awaitingHumanApproval: boolean;
     demoMode: boolean;
     wsConnected: boolean;
     socketInstance: any;
@@ -117,6 +118,7 @@ export interface SystemState {
     setMetrics: (m: Partial<MetricsData>) => void;
     addAudit: (action: string, agent: AgentName, detail: string) => void;
     setHumanInLoop: (v: boolean) => void;
+    setAwaitingHumanApproval: (v: boolean) => void;
     setDemoMode: (v: boolean) => void;
     setWsConnected: (v: boolean) => void;
     setSocketInstance: (s: any) => void;
@@ -149,6 +151,7 @@ const now = () => new Date().toLocaleTimeString('en-US', { hour12: false, hour: 
 export const useSystemStore = create<SystemState>((set) => ({
     systemStatus: 'online',
     humanInLoop: true,
+    awaitingHumanApproval: false,
     demoMode: false,
     wsConnected: false,
     socketInstance: null,
@@ -233,6 +236,7 @@ export const useSystemStore = create<SystemState>((set) => ({
         })),
 
     setHumanInLoop: (v) => set({ humanInLoop: v }),
+    setAwaitingHumanApproval: (v) => set({ awaitingHumanApproval: v }),
     setDemoMode: (v) => set({ demoMode: v }),
     setWsConnected: (v) => set({ wsConnected: v }),
     setSocketInstance: (s) => set({ socketInstance: s }),
@@ -257,5 +261,6 @@ export const useSystemStore = create<SystemState>((set) => ({
             auditTrail: [],
             floodGrid: null,
             simulationIteration: 0,
+            awaitingHumanApproval: false,
         }),
 }));

@@ -290,8 +290,26 @@ export async function runCrisisSequence() {
 
     s.addLog('Governance', 'Compliance check: ISO 22301 emergency protocol — PASSED.', 'success');
     await delay(600);
-    s.addLog('Governance', 'Authorization chain verified. Digital signature applied.', 'success');
+    s.addLog('Governance', 'Authorization chain verified.', 'success');
     await delay(600);
+
+    if (s.humanInLoop) {
+        s.addLog('Governance', '⏸ MANUAL APPROVAL REQUIRED. Halting execution until Human Supervisor signs off.', 'warning');
+        s.setAwaitingHumanApproval(true);
+        s.addAudit('HUMAN_APPROVAL_WAIT', 'Governance', 'Awaiting human mitigation authorization');
+
+        // Wait indefinitely until the human clicks the button in the UI
+        await eventBus.waitFor('HUMAN_APPROVAL_GIVEN', 'System', 86400000); // 24h timeout effectively infinite
+
+        s.setAwaitingHumanApproval(false);
+        s.addLog('Governance', '✅ HUMAN APPROVAL RECEIVED. Digital signature applied by Supervisor.', 'success');
+        s.addAudit('HUMAN_APPROVAL_GRANTED', 'Governance', 'Manual authorization applied by Human Supervisor');
+        await delay(500);
+    } else {
+        s.addLog('Governance', 'Digital signature applied automatically (Autonomous Mode).', 'success');
+        await delay(600);
+    }
+
     s.addLog('Governance', '✅ MITIGATION AUTHORIZED. Executing crisis response protocol.', 'success');
     s.addAudit('GOVERNANCE_APPROVED', 'Governance', 'Mitigation plan authorized — ISO 22301 compliant');
 

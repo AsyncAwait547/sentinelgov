@@ -22,7 +22,8 @@ export type EventType =
     | 'MITIGATION_INTERRUPT'
     | 'CRISIS_RESOLVED'
     | 'SIMULATION_ITERATION'
-    | 'FLOOD_GRID_UPDATE';
+    | 'FLOOD_GRID_UPDATE'
+    | 'HUMAN_APPROVAL_GIVEN';
 
 export interface BusEvent<T = unknown> {
     type: EventType;
