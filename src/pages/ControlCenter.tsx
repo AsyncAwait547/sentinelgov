@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io, Socket } from 'socket.io-client';
 import { useSystemStore } from '../store/useSystemStore';
+import { calculateLiveRisk } from '../orchestrator/crisisEngine';
 import { AgentLogConsole } from '../components/AgentLogConsole';
 import { RiskGauge } from '../components/RiskGauge';
 import { CityMap } from '../components/CityMap';
@@ -57,11 +58,30 @@ export function ControlCenter() {
 
             socket.on('telemetry:update', (data: any) => {
                 setTelemetry(data);
+
+                // ─── STORE LIVE TELEMETRY for the deterministic risk model ───
+                if (data.rainfall !== undefined) {
+                    const liveTelemetry = {
+                        rainfall: data.rainfall,
+                        drainageCapacity: data.drainageCapacity,
+                        populationDensity: data.populationDensity,
+                        socialSpike: data.socialSpike,
+                    };
+                    useSystemStore.getState().setLiveTelemetry(liveTelemetry);
+
+                    // ─── COMPUTE DETERMINISTIC RISK from live telemetry ───
+                    // Only update the risk gauge from telemetry when the crisis
+                    // engine is NOT actively running its own animation sequence.
+                    const status = useSystemStore.getState().crisisStatus;
+                    if (status === 'idle' || status === 'resolved') {
+                        const liveRisk = calculateLiveRisk(liveTelemetry);
+                        useSystemStore.getState().setRiskLevel(liveRisk);
+                    }
+                }
+
+                // Legacy metrics fallback
                 if (data.metrics) {
                     useSystemStore.getState().setMetrics(data.metrics);
-                    if (data.metrics.riskLevel !== undefined) {
-                        useSystemStore.getState().setRiskLevel(data.metrics.riskLevel);
-                    }
                 }
             });
 

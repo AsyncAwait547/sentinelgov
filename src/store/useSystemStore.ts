@@ -49,6 +49,13 @@ export interface AuditEntry {
     detail: string;
 }
 
+export interface LiveTelemetry {
+    rainfall: number;
+    drainageCapacity: number;
+    populationDensity: number;
+    socialSpike: number;
+}
+
 export interface SystemState {
     // System
     systemStatus: 'online' | 'offline' | 'degraded';
@@ -61,6 +68,9 @@ export interface SystemState {
     crisisStatus: CrisisStatus;
     riskLevel: number;
     targetRiskLevel: number;
+
+    // Live telemetry from server (feeds the deterministic risk model)
+    liveTelemetry: LiveTelemetry | null;
 
     // Agents
     activeAgents: AgentName[];
@@ -105,6 +115,7 @@ export interface SystemState {
     setDemoMode: (v: boolean) => void;
     setWsConnected: (v: boolean) => void;
     setSocketInstance: (s: any) => void;
+    setLiveTelemetry: (t: LiveTelemetry) => void;
     resetSystem: () => void;
 }
 
@@ -128,7 +139,7 @@ const initialMetrics: MetricsData = {
 
 const now = () => new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-export const useSystemStore = create<SystemState>((set, get) => ({
+export const useSystemStore = create<SystemState>((set) => ({
     systemStatus: 'online',
     humanInLoop: true,
     demoMode: false,
@@ -138,6 +149,8 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     crisisStatus: 'idle',
     riskLevel: 12,
     targetRiskLevel: 12,
+
+    liveTelemetry: null,
 
     activeAgents: [],
     agentCommunications: [],
@@ -213,12 +226,14 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     setDemoMode: (v) => set({ demoMode: v }),
     setWsConnected: (v) => set({ wsConnected: v }),
     setSocketInstance: (s) => set({ socketInstance: s }),
+    setLiveTelemetry: (t) => set({ liveTelemetry: t }),
 
     resetSystem: () =>
         set({
             crisisStatus: 'idle',
             riskLevel: 12,
             targetRiskLevel: 12,
+            liveTelemetry: null,
             activeAgents: [],
             agentCommunications: [],
             zones: [...defaultZones],
