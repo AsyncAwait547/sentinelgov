@@ -121,7 +121,7 @@ export interface SystemState {
     setWsConnected: (v: boolean) => void;
     setSocketInstance: (s: any) => void;
     setLiveTelemetry: (t: LiveTelemetry) => void;
-    setFloodGrid: (g: FloodGrid) => void;
+    setFloodGrid: (g: FloodGrid | null) => void;
     setSimulationIteration: (n: number) => void;
     resetSystem: () => void;
 }

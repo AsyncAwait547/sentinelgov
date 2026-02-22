@@ -24,6 +24,47 @@ const bridgePaths = [
     { d: 'M480,120 L550,220', label: 'East Overpass' },
 ];
 
+function FloodLayer() {
+    const grid = useSystemStore((s) => s.floodGrid);
+    if (!grid) return null;
+
+    return (
+        <g className="flood-layer" style={{ mixBlendMode: 'screen' }}>
+            {grid.map((rowArr, rIdx) =>
+                rowArr.map((cell, cIdx) => {
+                    if (cell.waterLevel <= 0.02) return null;
+
+                    // The SVG viewBox is 80 30 570 420
+                    // Grid is 20 cols x 16 rows
+                    const cellW = 570 / 20;   // 28.5
+                    const cellH = 420 / 16;   // 26.25
+                    const x = 80 + cIdx * cellW;
+                    const y = 30 + rIdx * cellH;
+
+                    // Color based on water depth
+                    const isDeep = cell.waterLevel > 0.6;
+                    const isMed = cell.waterLevel > 0.3;
+                    const color = isDeep ? '#ff003c' : (isMed ? '#f59e0b' : '#00f0ff');
+                    const opacity = Math.min(0.85, cell.waterLevel * 1.8);
+
+                    return (
+                        <rect
+                            key={`${rIdx}-${cIdx}`}
+                            x={x}
+                            y={y}
+                            width={cellW + 0.5} // prevent sub-pixel gaps
+                            height={cellH + 0.5}
+                            fill={color}
+                            fillOpacity={opacity}
+                            className="transition-all duration-1000 ease-linear"
+                        />
+                    );
+                })
+            )}
+        </g>
+    );
+}
+
 function ZoneNode({ zone, onClick }: { zone: Zone; onClick: (z: Zone) => void }) {
     const color = statusColors[zone.status];
     const isCritical = zone.status === 'critical' || zone.status === 'evacuating';
@@ -158,6 +199,9 @@ export function CityMap() {
                         transition={{ duration: 3, ease: 'easeInOut' }}
                     />
                 )}
+
+                {/* Cellular Automata Flood Overlay */}
+                <FloodLayer />
 
                 {/* Zone nodes */}
                 {zones.map((z) => (
