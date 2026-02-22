@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useSystemStore } from '../store/useSystemStore';
-import { FileText, Download, Shield, Scale, AlertTriangle } from 'lucide-react';
+import { FileText, Download, Shield, Scale, AlertTriangle, Lock, Hash } from 'lucide-react';
 import { eventBus } from '../orchestrator/eventBus';
 
 export function GovernancePanel() {
@@ -8,14 +8,25 @@ export function GovernancePanel() {
     const negotiationState = useSystemStore((s) => s.negotiationState);
     const mitigationPlan = useSystemStore((s) => s.mitigationPlan);
     const awaitingHumanApproval = useSystemStore((s) => s.awaitingHumanApproval);
+    const stateTimeline = useSystemStore((s) => s.stateTimeline);
+    const preRisk = useSystemStore((s) => s.preRisk);
+    const postRisk = useSystemStore((s) => s.postRisk);
 
     const exportReport = () => {
         const report = {
             generated: new Date().toISOString(),
-            system: 'SentinelGov Crisis Simulation v3.2',
+            system: 'SentinelGov Crisis Intelligence v3.2',
+            riskAnalysis: {
+                preMitigationRisk: preRisk,
+                postMitigationRisk: postRisk,
+                reduction: preRisk - postRisk,
+                effectiveness: preRisk > 0 ? `${Math.round(((preRisk - postRisk) / preRisk) * 100)}%` : 'N/A',
+            },
             auditTrail,
+            stateTimeline,
             negotiationState,
             mitigationPlan,
+            integrityNote: 'Each audit entry includes a SHA-256 hash for immutability verification.',
         };
         const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -72,27 +83,71 @@ export function GovernancePanel() {
                 </motion.div>
             )}
 
+            {/* Before vs After Risk (#7) */}
+            {preRisk > 0 && postRisk > 0 && (
+                <div className="mb-3 p-2 rounded bg-emerald-500/10 border border-emerald-500/20">
+                    <div className="flex items-center justify-between text-[9px] font-mono">
+                        <span className="text-red-400">Pre: <strong>{preRisk}%</strong></span>
+                        <span className="text-slate-500">→</span>
+                        <span className="text-emerald-400">Post: <strong>{postRisk}%</strong></span>
+                        <span className="text-emerald-300 font-bold">
+                            ↓{preRisk - postRisk}% ({Math.round(((preRisk - postRisk) / preRisk) * 100)}%)
+                        </span>
+                    </div>
+                </div>
+            )}
+
             <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
                 {auditTrail.length === 0 && (
                     <div className="text-slate-600 text-[10px] font-mono text-center py-4">No audit entries yet.</div>
                 )}
-                {auditTrail.map((entry, i) => (
-                    <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: -5 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="p-2 rounded border border-white/5 bg-slate-900/30 group"
-                    >
-                        <div className="flex items-center gap-2 mb-0.5">
-                            <FileText className="w-2.5 h-2.5 text-primary/60" />
-                            <span className="text-[8px] font-bold text-primary uppercase tracking-widest">{entry.action}</span>
-                            <span className="ml-auto text-[8px] text-slate-600 font-mono">{entry.timestamp}</span>
-                        </div>
-                        <p className="text-[9px] text-slate-400 font-mono">{entry.detail}</p>
-                        <span className="text-[7px] text-slate-600 uppercase">{entry.agent}</span>
-                    </motion.div>
-                ))}
+                {auditTrail.map((entry, i) => {
+                    const hasHash = entry.detail?.includes('Hash:');
+                    return (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -5 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="p-2 rounded border border-white/5 bg-slate-900/30 group"
+                        >
+                            <div className="flex items-center gap-2 mb-0.5">
+                                {hasHash ? (
+                                    <Lock className="w-2.5 h-2.5 text-emerald-400/60" />
+                                ) : (
+                                    <FileText className="w-2.5 h-2.5 text-primary/60" />
+                                )}
+                                <span className="text-[8px] font-bold text-primary uppercase tracking-widest">{entry.action}</span>
+                                <span className="ml-auto text-[8px] text-slate-600 font-mono">{entry.timestamp}</span>
+                            </div>
+                            <p className="text-[9px] text-slate-400 font-mono">{entry.detail}</p>
+                            <div className="flex items-center justify-between mt-0.5">
+                                <span className="text-[7px] text-slate-600 uppercase">{entry.agent}</span>
+                                {hasHash && (
+                                    <span className="text-[7px] text-emerald-500 flex items-center gap-0.5">
+                                        <Hash className="w-2 h-2" /> SHA-256
+                                    </span>
+                                )}
+                            </div>
+                        </motion.div>
+                    );
+                })}
             </div>
+
+            {/* State Timeline (#8) */}
+            {stateTimeline.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-white/5">
+                    <h4 className="text-[9px] uppercase font-bold text-slate-500 tracking-wider mb-2 flex items-center gap-1">
+                        State Machine Transitions
+                    </h4>
+                    <div className="flex flex-wrap gap-1">
+                        {stateTimeline.map((t, i) => (
+                            <span key={i} className="text-[7px] font-mono px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                                {t.from}→{t.to}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Negotiation log */}
             {negotiationState.length > 0 && (

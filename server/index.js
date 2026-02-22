@@ -169,6 +169,15 @@ io.on('connection', (socket) => {
 
             socket.emit('crisis:serverLog', { agent: randomAgent, message: randomMsg, severity });
             socket.broadcast.emit('crisis:serverLog', { agent: randomAgent, message: randomMsg, severity });
+
+            // (#9) Granular events — makes WebSocket feel alive
+            const granularEvents = [
+                { event: 'crisis:riskUpdated', data: { riskLevel: Math.round(clamp(telemetryState.rainfall / 150, 0, 1) * 0.4 * 100 + (1 - telemetryState.drainageCapacity) * 0.2 * 100 + telemetryState.populationDensity * 0.2 * 100 + telemetryState.socialSpike * 0.2 * 100), timestamp: Date.now() } },
+                { event: 'crisis:simulationProgress', data: { iteration: systemTick - crisisStartTick, rainfall: round2(telemetryState.rainfall), drainage: round2(telemetryState.drainageCapacity) } },
+            ];
+            const ge = granularEvents[Math.floor(Math.random() * granularEvents.length)];
+            socket.emit(ge.event, ge.data);
+            socket.broadcast.emit(ge.event, ge.data);
         }, 3500);
 
         // Phase progression (server-driven timeline)

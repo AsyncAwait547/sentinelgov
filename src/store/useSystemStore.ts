@@ -48,6 +48,8 @@ export interface AuditEntry {
     action: string;
     agent: AgentName;
     detail: string;
+    hash?: string;
+    confidence?: number;
 }
 
 export interface LiveTelemetry {
@@ -55,6 +57,29 @@ export interface LiveTelemetry {
     drainageCapacity: number;
     populationDensity: number;
     socialSpike: number;
+}
+
+export interface MonteCarloResult {
+    mean: number;
+    stdDev: number;
+    ci95: [number, number];
+    worstCase: number;
+    scenariosRun: number;
+    zoneBreakdown: { zone: string; risk: number }[];
+}
+
+export interface SensitivityBreakdown {
+    rainfallImpact: number;
+    drainageImpact: number;
+    populationImpact: number;
+    socialImpact: number;
+}
+
+export interface StateTransition {
+    from: CrisisStatus;
+    to: CrisisStatus;
+    timestamp: string;
+    agent: AgentName;
 }
 
 export interface SystemState {
@@ -99,6 +124,13 @@ export interface SystemState {
     floodGrid: FloodGrid | null;
     simulationIteration: number;
 
+    // Monte Carlo & Sensitivity (Deep Upgrade)
+    monteCarloResult: MonteCarloResult | null;
+    sensitivityBreakdown: SensitivityBreakdown | null;
+    preRisk: number;
+    postRisk: number;
+    stateTimeline: StateTransition[];
+
     // Actions
     setSystemStatus: (s: 'online' | 'offline' | 'degraded') => void;
     setCrisisStatus: (s: CrisisStatus) => void;
@@ -125,6 +157,11 @@ export interface SystemState {
     setLiveTelemetry: (t: LiveTelemetry) => void;
     setFloodGrid: (g: FloodGrid | null) => void;
     setSimulationIteration: (n: number) => void;
+    setMonteCarloResult: (r: MonteCarloResult | null) => void;
+    setSensitivityBreakdown: (s: SensitivityBreakdown | null) => void;
+    setPreRisk: (n: number) => void;
+    setPostRisk: (n: number) => void;
+    addStateTransition: (from: CrisisStatus, to: CrisisStatus, agent: AgentName) => void;
     resetSystem: () => void;
 }
 
@@ -179,6 +216,11 @@ export const useSystemStore = create<SystemState>((set) => ({
 
     floodGrid: null,
     simulationIteration: 0,
+    monteCarloResult: null,
+    sensitivityBreakdown: null,
+    preRisk: 0,
+    postRisk: 0,
+    stateTimeline: [],
 
     setSystemStatus: (s) => set({ systemStatus: s }),
     setCrisisStatus: (s) => set({ crisisStatus: s }),
@@ -243,6 +285,14 @@ export const useSystemStore = create<SystemState>((set) => ({
     setLiveTelemetry: (t) => set({ liveTelemetry: t }),
     setFloodGrid: (g) => set({ floodGrid: g }),
     setSimulationIteration: (n) => set({ simulationIteration: n }),
+    setMonteCarloResult: (r) => set({ monteCarloResult: r }),
+    setSensitivityBreakdown: (s) => set({ sensitivityBreakdown: s }),
+    setPreRisk: (n) => set({ preRisk: n }),
+    setPostRisk: (n) => set({ postRisk: n }),
+    addStateTransition: (from, to, agent) =>
+        set((s) => ({
+            stateTimeline: [...s.stateTimeline, { from, to, timestamp: now(), agent }],
+        })),
 
     resetSystem: () =>
         set({
@@ -262,5 +312,10 @@ export const useSystemStore = create<SystemState>((set) => ({
             floodGrid: null,
             simulationIteration: 0,
             awaitingHumanApproval: false,
+            monteCarloResult: null,
+            sensitivityBreakdown: null,
+            preRisk: 0,
+            postRisk: 0,
+            stateTimeline: [],
         }),
 }));

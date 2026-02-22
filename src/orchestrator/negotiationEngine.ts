@@ -88,6 +88,26 @@ function checkFeasibility(
     };
 }
 
+// ─── UTILITY-BASED ZONE PRIORITY (#4) ───────────────────────────────────────
+// Allocate resources to highest-utility zones first.
+function computeZoneUtility(zones: string[]): { zone: string; utility: number; allocation: string }[] {
+    const zoneData: Record<string, { riskScore: number; populationDensity: number; hospitalProximity: number }> = {
+        'Ward 12 - River Delta': { riskScore: 0.85, populationDensity: 0.9, hospitalProximity: 0.3 },
+        'North Bridge Corridor': { riskScore: 0.72, populationDensity: 0.4, hospitalProximity: 0.8 },
+        'West Water Treatment': { riskScore: 0.65, populationDensity: 0.2, hospitalProximity: 0.5 },
+    };
+
+    return zones.map(zone => {
+        const data = zoneData[zone] ?? { riskScore: 0.5, populationDensity: 0.5, hospitalProximity: 0.5 };
+        const utility = data.riskScore * data.populationDensity + data.hospitalProximity * 0.3;
+        return {
+            zone,
+            utility: Math.round(utility * 100),
+            allocation: utility > 0.7 ? 'PRIORITY' : utility > 0.4 ? 'STANDARD' : 'DEFERRED',
+        };
+    }).sort((a, b) => b.utility - a.utility);
+}
+
 // ─── NEGOTIATION LOOP ───────────────────────────────────────────────────────
 // Returns the final agreed-upon demand after iterative negotiation.
 export async function runDynamicNegotiation(
@@ -103,6 +123,14 @@ export async function runDynamicNegotiation(
     s.setCrisisStatus('negotiating');
     s.addLog('Resource', 'Analyzing resource availability against mitigation requirements.', 'info');
     await delay(800);
+
+    // (#4) Compute zone utility scores
+    const zoneUtility = computeZoneUtility(initialDemand.zones);
+    for (const zu of zoneUtility) {
+        s.addLog('Resource', `Utility: ${zu.zone.split(' - ')[0]} → score=${zu.utility} [${zu.allocation}]`, 'info');
+        s.addNegotiation('Resource', `Zone utility: ${zu.zone.split(' - ')[0]} = ${zu.utility}/100 [${zu.allocation}]`);
+    }
+    await delay(600);
 
     while (round < maxRounds) {
         round++;
@@ -157,12 +185,14 @@ export async function runDynamicNegotiation(
 
         if (check.feasible) {
             // ─── CONSENSUS REACHED ─────────────────────────────────────
+            const confidence = Math.round(0.5 + (maxRounds - round) / maxRounds * 0.5 * 100) / 100;
             s.addAudit(
                 'NEGOTIATION_RESOLVED',
                 'Resource',
-                `Consensus in ${round} round(s): ${currentDemand.priority} evacuation, ${currentDemand.pumpsRequested} pumps`
+                `Consensus R${round}: ${currentDemand.priority} evac, ${currentDemand.pumpsRequested} pumps | Confidence: ${confidence}`
             );
-            s.addLog('Resource', `✓ Negotiation resolved in ${round} round(s). Forwarding to Governance.`, 'success');
+            s.addLog('Resource', `✓ Negotiation resolved in ${round} round(s). Confidence: ${confidence}. Forwarding to Governance.`, 'success');
+            s.addNegotiation('Resource', `✓ Consensus reached — confidence: ${confidence}`);
             s.addAgentComm('Resource', 'Governance', 'Negotiation resolution forwarded');
 
             eventBus.emit('NEGOTIATION_RESOLVED', 'Resource', {
