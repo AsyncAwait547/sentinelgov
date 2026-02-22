@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { FloodGrid } from '../orchestrator/floodGrid';
 
 export type AgentName = 'Sentinel' | 'Risk' | 'Simulation' | 'Response' | 'Resource' | 'Governance';
 export type CrisisStatus = 'idle' | 'detected' | 'simulating' | 'negotiating' | 'mitigating' | 'mitigated' | 'resolved';
@@ -93,6 +94,10 @@ export interface SystemState {
     // Governance
     auditTrail: AuditEntry[];
 
+    // Flood Grid (Cellular Automata)
+    floodGrid: FloodGrid | null;
+    simulationIteration: number;
+
     // Actions
     setSystemStatus: (s: 'online' | 'offline' | 'degraded') => void;
     setCrisisStatus: (s: CrisisStatus) => void;
@@ -116,6 +121,8 @@ export interface SystemState {
     setWsConnected: (v: boolean) => void;
     setSocketInstance: (s: any) => void;
     setLiveTelemetry: (t: LiveTelemetry) => void;
+    setFloodGrid: (g: FloodGrid) => void;
+    setSimulationIteration: (n: number) => void;
     resetSystem: () => void;
 }
 
@@ -166,6 +173,9 @@ export const useSystemStore = create<SystemState>((set) => ({
     metrics: { ...initialMetrics },
 
     auditTrail: [],
+
+    floodGrid: null,
+    simulationIteration: 0,
 
     setSystemStatus: (s) => set({ systemStatus: s }),
     setCrisisStatus: (s) => set({ crisisStatus: s }),
@@ -227,6 +237,8 @@ export const useSystemStore = create<SystemState>((set) => ({
     setWsConnected: (v) => set({ wsConnected: v }),
     setSocketInstance: (s) => set({ socketInstance: s }),
     setLiveTelemetry: (t) => set({ liveTelemetry: t }),
+    setFloodGrid: (g) => set({ floodGrid: g }),
+    setSimulationIteration: (n) => set({ simulationIteration: n }),
 
     resetSystem: () =>
         set({
@@ -243,5 +255,7 @@ export const useSystemStore = create<SystemState>((set) => ({
             negotiationState: [],
             metrics: { ...initialMetrics },
             auditTrail: [],
+            floodGrid: null,
+            simulationIteration: 0,
         }),
 }));
