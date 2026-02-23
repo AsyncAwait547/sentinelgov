@@ -43,10 +43,9 @@ export function InjectCrisisButton() {
                         const socket = useSystemStore.getState().socketInstance;
                         if (socket) {
                             socket.emit('crisis:inject');
-                        } else {
-                            // Fallback if websocket is somehow offline
-                            runCrisisSequence();
                         }
+                        // Start the frontend orchestration engine regardless of socket status
+                        runCrisisSequence();
                     }}
                     className="w-full h-14 bg-transparent border-2 border-[#ff003c]/40 text-[#ff003c] font-black tracking-[0.15em] text-xs rounded-lg flex items-center justify-center gap-3 uppercase cursor-pointer shadow-[0_0_15px_rgba(255,0,60,0.15)] hover:bg-[#ff003c]/5 transition-all"
                 >
