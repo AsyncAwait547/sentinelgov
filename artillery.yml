@@ -1,0 +1,34 @@
+config:
+  target: "http://localhost:3001"
+  phases:
+    - duration: 30
+      arrivalRate: 10
+      name: "Warm up"
+    - duration: 60
+      arrivalRate: 50
+      name: "Sustained load"
+    - duration: 30
+      arrivalRate: 100
+      name: "Spike test"
+
+scenarios:
+  - name: "Health check"
+    flow:
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200
+
+  - name: "Readiness probe"
+    flow:
+      - get:
+          url: "/api/readiness"
+          expect:
+            - statusCode: 200
+
+  - name: "Report endpoint"
+    flow:
+      - get:
+          url: "/api/report"
+          expect:
+            - statusCode: 200

@@ -2,14 +2,31 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { createClient } from 'redis';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// ─── SECURITY ───────────────────────────────────────────────────────────────
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:3001').split(',');
+
 const app = express();
-app.use(cors());
+app.use(helmet({ contentSecurityPolicy: false })); // CSP disabled for inline scripts in SPA
+app.use(cors({ origin: ALLOWED_ORIGINS }));
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200, standardHeaders: true, legacyHeaders: false }));
+
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: '*', methods: ['GET', 'POST'] } });
+const io = new Server(httpServer, { cors: { origin: ALLOWED_ORIGINS, methods: ['GET', 'POST'] } });
+
+// ─── SERVE BUILT FRONTEND IN PRODUCTION ─────────────────────────────────
+const distPath = join(__dirname, '..', 'dist');
+app.use(express.static(distPath));
 
 // ─── INIT REDIS PUB/SUB ────────────────────────────────────────────────
 let redisPublisher = null;
@@ -170,7 +187,30 @@ io.on('connection', (socket) => {
     socket.on('crisis:abort', () => { crisisActive = false; });
 });
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '4.0.0', broker: process.env.REDIS_URL ? 'Redis' : 'InMemory', activeCrisis: crisisActive }));
+// ─── HEALTH & READINESS ENDPOINTS ───────────────────────────────────────────
+app.get('/api/health', (req, res) => res.json({
+    status: 'ok', version: '4.0.0',
+    broker: process.env.REDIS_URL ? 'Redis' : 'InMemory',
+    activeCrisis: crisisActive,
+    uptime: Math.floor(process.uptime()),
+}));
+
+app.get('/api/readiness', async (req, res) => {
+    const checks = { server: true, redis: false, ml: false };
+    try {
+        if (redisPublisher) { await redisPublisher.ping(); checks.redis = true; }
+        else { checks.redis = true; } // no Redis required in dev
+    } catch { checks.redis = false; }
+    try {
+        if (process.env.ML_SERVICE_URL) {
+            const r = await fetch(`${process.env.ML_SERVICE_URL}/health`);
+            checks.ml = r.ok;
+        } else { checks.ml = true; }
+    } catch { checks.ml = false; }
+    const ready = Object.values(checks).every(Boolean);
+    res.status(ready ? 200 : 503).json({ ready, checks });
+});
+
 app.get('/api/report', (req, res) => res.json({ id: 'SG-RPT-8293', generatedAt: new Date().toISOString(), status: 'secured' }));
 
 httpServer.listen(3001, () => {

@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+.git
+.env
+.env.*
+!.env.example
+*.log
+ml-service/venv
+ml-service/__pycache__
+.vscode
+.idea
+.DS_Store

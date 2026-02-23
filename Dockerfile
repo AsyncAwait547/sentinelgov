@@ -1,23 +1,41 @@
-FROM node:22-alpine
+# ═══════════════════════════════════════════════════════════════
+# SentinelGov — Production Multi-Stage Dockerfile
+# ═══════════════════════════════════════════════════════════════
 
-# Set working directory
+# ── Stage 1: Build the Vite Frontend ─────────────────────────
+FROM node:22-alpine AS builder
+
 WORKDIR /app
 
-# Copy package.json and install dependencies
 COPY package*.json ./
 RUN npm ci
 
-# Copy the rest of the app
 COPY . .
-
-# Build Vite frontend
 RUN npm run build
 
-# Expose Vite Port & Server Port
-EXPOSE 5173 3001
+# ── Stage 2: Production Runtime ──────────────────────────────
+FROM node:22-alpine AS runtime
 
-# When deployed to Production, you typically would serve the built assets
-# using a static file server and run Node backend separately. 
-# Here we concurrently boot the Vite dev server and the Node WebSocket backend 
-# so Docker-Compose behaves like local dev.
-CMD ["npm", "run", "dev"]
+WORKDIR /app
+
+# Install only production dependencies
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy built frontend assets
+COPY --from=builder /app/dist ./dist
+
+# Copy server code
+COPY server/ ./server/
+
+# Copy .env.example as reference (actual .env mounted at runtime)
+COPY .env.example ./.env.example
+
+EXPOSE 3001
+
+# Health check for container orchestrators
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || exit 1
+
+# Production entrypoint — serve static files + WebSocket backend
+CMD ["node", "server/index.js"]
