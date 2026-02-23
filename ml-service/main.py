@@ -1,10 +1,11 @@
 import os
 import json
 import logging
+import joblib
 from typing import Dict, Any
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from pydantic import BaseModel
-import httpx
+import numpy as np
 
 app = FastAPI(title="SentinelGov Risk Inference Engine")
 logging.basicConfig(level=logging.INFO)
@@ -21,38 +22,68 @@ class InferenceResult(BaseModel):
     confidenceLow: float
     modelUsed: str
 
-# In a real environment, you would load your trained weights (e.g. Scikit-learn, PyTorch, TensorFlow)
-# model = joblib.load('models/flood-predictor-v1.pkl')
+# Try to load the trained Random Forest model. If not found, use a fallback heuristic.
+MODEL_PATH = "models/flood_rf_model.joblib"
+try:
+    if os.path.exists(MODEL_PATH):
+        ml_model = joblib.load(MODEL_PATH)
+        logging.info("✅ Loaded trained Random Forest model successfully.")
+    else:
+        ml_model = None
+        logging.warning("⚠️ No trained model found at models/flood_rf_model.joblib. Using heuristic fallback.")
+except Exception as e:
+    ml_model = None
+    logging.error(f"Failed to load model: {e}")
 
 @app.post("/predict-risk", response_model=InferenceResult)
 async def predict_risk(data: TelemetryPacket):
     """
-    Mock AI Model Integration replacing the static formula.
-    In practice, this uses features drawn from telemetry.
+    Real AI Model Integration: Inference endpoint running the trained Scikit-Learn Random Forest.
+    If the model isn't built yet, it seamlessly falls back to the deterministic math formula.
     """
-    # ─── Mock AI / ML Feature Extraction ───────────────────
-    # Normalizing inputs
-    rain_norm = min(data.rainfall / 150.0, 1.0)
-    drainage_fail = 1.0 - data.drainageCapacity
-    
-    # "Non-linear" risk inference (mocking neural network weights)
-    # This highlights why ML is better than simple math
-    non_linear_rain_impact = rain_norm ** 1.3
-    combined_geo = (non_linear_rain_impact * 0.5) + (drainage_fail * 0.25)
-    
-    base_risk = combined_geo + (data.socialSpike * 0.15) + (data.populationDensity * 0.1)
-    predicted_risk = min(max(base_risk * 100, 0), 100)
+    # Create input feature array [rainfall, drainageCapacity, populationDensity, socialSpike]
+    X_infer = np.array([[data.rainfall, data.drainageCapacity, data.populationDensity, data.socialSpike]])
 
-    # Simulated Confidence Interval (widens on extreme values)
-    variance = max(3.0, predicted_risk * 0.08)
+    if ml_model is not None:
+        # ─── REAL INFERENCE (Scikit-Learn Random Forest) ───
+        # We can extract the predictions from ALL trees in the forest to calculate a mean and standard deviation!
+        # This provides a REAL mathematical confidence interval.
+        preds = []
+        for estimator in ml_model.estimators_:
+            preds.append(estimator.predict(X_infer)[0])
+        
+        predicted_risk = np.mean(preds)
+        std_dev = np.std(preds)
+        
+        # 95% Confidence Interval (1.96 * std_dev)
+        margin_of_error = max(1.96 * std_dev, 2.0) # minimum 2% margin to represent base uncertainty
+        
+        return InferenceResult(
+            predictedRisk=round(predicted_risk, 1),
+            confidenceHigh=round(min(predicted_risk + margin_of_error, 100), 1),
+            confidenceLow=round(max(predicted_risk - margin_of_error, 0), 1),
+            modelUsed="RandomForest_v1.0"
+        )
+    else:
+        # ─── HEURISTIC FALLBACK (If .joblib lacks training) ───
+        rain_norm = min(data.rainfall / 150.0, 1.0)
+        drainage_fail = 1.0 - data.drainageCapacity
+        
+        non_linear_rain_impact = rain_norm ** 1.3
+        combined_geo = (non_linear_rain_impact * 0.5) + (drainage_fail * 0.25)
+        
+        base_risk = combined_geo + (data.socialSpike * 0.15) + (data.populationDensity * 0.1)
+        predicted_risk = min(max(base_risk * 100, 0), 100)
     
-    return InferenceResult(
-        predictedRisk=round(predicted_risk, 1),
-        confidenceHigh=round(min(predicted_risk + variance, 100), 1),
-        confidenceLow=round(max(predicted_risk - variance, 0), 1),
-        modelUsed="sentinel-xgboost-v5.2"
-    )
+        variance = max(3.0, predicted_risk * 0.08)
+        
+        return InferenceResult(
+            predictedRisk=round(predicted_risk, 1),
+            confidenceHigh=round(min(predicted_risk + variance, 100), 1),
+            confidenceLow=round(max(predicted_risk - variance, 0), 1),
+            modelUsed="HeuristicFallback_v0.1"
+        )
 
 @app.get("/health")
 def read_root():
-    return {"status": "ok", "service": "ML Inference", "broker": os.getenv("REDIS_URL")}
+    return {"status": "ok", "service": "ML Inference", "model_loaded": ml_model is not None}
