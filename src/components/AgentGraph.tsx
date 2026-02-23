@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactFlow, { Background, Position, Handle } from 'reactflow';
 import type { Edge, Node } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -94,12 +94,15 @@ function AgentNode({ data }: any) {
     );
 }
 
-const nodeTypes = { agentNode: AgentNode };
+// Memoized nodeTypes handled inside the component
 
 export function AgentGraph() {
     const activeAgents = useSystemStore((s) => s.activeAgents);
     const crisisStatus = useSystemStore((s) => s.crisisStatus);
     const [edges, setEdges] = useState<Edge[]>(baseEdges);
+
+    // Memoize nodeTypes as required by React Flow Best Practices
+    const nodeTypes = React.useMemo(() => ({ agentNode: AgentNode }), []);
 
     useEffect(() => {
         const isActive = crisisStatus !== 'idle';

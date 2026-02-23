@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactFlow, { Background, Position, Handle } from 'reactflow';
 import type { Edge, Node } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -40,14 +40,16 @@ function CustomNode({ data }: any) {
     );
 }
 
-const nodeTypes = {
-    customNode: CustomNode,
-};
+// Removed global definitions of nodeTypes to prevent warning
+
 
 export function AgentGraphView() {
     const { isCrisisActive } = useCrisisStore();
     const [nodes] = useState<Node[]>(initialNodes);
     const [edges, setEdges] = useState<Edge[]>(initialEdges);
+
+    // Memoize nodeTypes as required by React Flow
+    const nodeTypes = React.useMemo(() => ({ customNode: CustomNode }), []);
 
     useEffect(() => {
         // When crisis is active, make lines animate and turn red
