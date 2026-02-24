@@ -1,0 +1,274 @@
+
+
+export function LandingPage() {
+    return (
+        <div className="bg-background-light dark:bg-background-dark font-body antialiased selection:bg-primary selection:text-white overflow-x-hidden dark">
+            
+    <div className="fixed inset-0 z-[-1] bg-white dark:bg-hero-gradient bg-noise"></div>
+    <nav
+        className="fixed w-full z-50 top-0 left-0 border-b border-gray-200 dark:border-white/5 bg-white/80 dark:bg-[#050508]/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-20">
+                <div className="flex-shrink-0 flex items-center gap-2">
+                    <span className="material-icons-round text-primary text-3xl">shield</span>
+                    <span className="font-display font-bold text-xl tracking-wider text-gray-900 dark:text-white uppercase">
+                        Sentinel<span className="text-primary">Gov</span>
+                    </span>
+                </div>
+                <div className="hidden md:block">
+                    <div className="ml-10 flex items-baseline space-x-4">
+                        <a href="/dashboard"
+                            className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary px-2 py-2 rounded-md text-sm font-medium transition-colors">Control
+                            Center</a>
+                        <a href="/dashboard"
+                            className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary px-2 py-2 rounded-md text-sm font-medium transition-colors">Dashboard</a>
+                        <a href="/sentinelgov_execution_command_view/code.html"
+                            className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary px-2 py-2 rounded-md text-sm font-medium transition-colors">Execution</a>
+                        <a href="/sentinelgov_agent_decision_logic_view/code.html"
+                            className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary px-2 py-2 rounded-md text-sm font-medium transition-colors">Decision
+                            Logic</a>
+                        <a href="/sentinelgov_critical_authorization_portal/code.html"
+                            className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary px-2 py-2 rounded-md text-sm font-medium transition-colors">Authorization</a>
+                        <a href="/sentinelgov_agent_reasoning_modal/code.html"
+                            className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary px-2 py-2 rounded-md text-sm font-medium transition-colors">Reasoning</a>
+                    </div>
+                </div>
+                <div className="hidden md:flex items-center gap-4">
+                    <span className="flex h-3 w-3 relative">
+                        <span
+                            className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                    </span>
+                    <span className="text-xs font-mono text-gray-500 dark:text-gray-400 uppercase tracking-widest">System
+                        Online</span>
+                    <button className="ml-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                        <span className="material-icons-round text-gray-900 dark:text-white">menu</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <main
+        className="relative pt-32 pb-16 sm:pt-40 sm:pb-24 lg:pb-32 min-h-screen flex flex-col justify-center overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none z-0 opacity-20 dark:opacity-10"
+            style={{"backgroundImage":"linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)","backgroundSize":"50px 50px"}}>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div className="text-left lg:pr-8">
+
+                    <h1
+                        className="text-5xl md:text-7xl font-display font-bold text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-6">
+                        SENTINEL<span
+                            className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600 dark:to-primary-glow">GOV</span><br />
+                        Autonomous<br />
+                        Infrastructure<br />
+                        Intelligence
+                    </h1>
+                    <p
+                        className="mt-4 text-xl text-gray-600 dark:text-gray-400 max-w-lg font-light leading-relaxed border-l-2 border-primary pl-6">
+                        Detect. Predict. Simulate. Respond. <br />
+                        A crisis response neural network for the modern state.
+                    </p>
+                    <div className="mt-10 flex flex-col sm:flex-row gap-4">
+                        <a className="glass-btn group inline-flex items-center justify-center px-8 py-4 text-base font-medium rounded-lg text-white dark:text-white min-w-[200px]"
+                            href="/dashboard">
+                            <span className="material-icons-round mr-2 group-hover:animate-pulse">rocket_launch</span>
+                            Launch Control Center
+                        </a>
+                        <a className="inline-flex items-center justify-center px-8 py-4 text-base font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-transparent border border-gray-300 dark:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5 transition-all min-w-[200px]"
+                            href="/sentinelgov_execution_command_view/code.html">
+                            <span className="material-icons-round mr-2">play_circle</span>
+                            View Crisis Simulation
+                        </a>
+                    </div>
+                    <div
+                        className="mt-12 flex items-center gap-8 text-gray-500 dark:text-gray-500 text-sm font-mono uppercase tracking-wider">
+                        <div className="flex items-center gap-2">
+                            <span className="material-icons-round text-base">verified_user</span>
+                            <span>Gov Approved</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="material-icons-round text-base">encrypted</span>
+                            <span>End-to-End Encrypted</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="relative lg:h-[600px] flex items-center justify-center">
+                    <div
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 blur-[100px] rounded-full pointer-events-none animate-pulse-slow">
+                    </div>
+                    <div className="relative w-full aspect-square max-w-[500px]">
+                        <div
+                            className="absolute inset-0 border border-primary/20 rounded-full animate-[spin_20s_linear_infinite]">
+                        </div>
+                        <div
+                            className="absolute inset-8 border border-dashed border-primary/30 rounded-full animate-[spin_15s_linear_infinite_reverse]">
+                        </div>
+                        <div className="absolute inset-16 border border-primary/10 rounded-full"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <img alt="Abstract Topographic Data Map"
+                                className="w-[80%] h-[80%] object-cover rounded-full opacity-80 mix-blend-screen mask-image-radial"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpOxH0YQWveH0nBz36KI2iwR6T7ncbsnAac5a1bpxtxuElcC3hinMg50z4dGWXhVDilTptf83KSQRaIr43LT37mlS1du6FdWVlz47Li-ejmnpvgEMa-BsAoNyK1gLwa1OMcKOzFGp17D5h00lFpwNejfSon22zcec5V8FzCKsgBl3XMruqPLHgmn6X-Trzd6TGHreo_tXBFvOvyOkGOeiG0Gc7j4UsCnQpfMOQ9lmLi6viX4zOsZP57g9LCbaZgsawhi0zl5YMAlFN"
+                                style={{"WebkitMaskImage":"radial-gradient(circle, black 40%, transparent 70%)","maskImage":"radial-gradient(circle, black 40%, transparent 70%)"}} />
+                        </div>
+                        <div className="absolute top-[30%] left-[40%]">
+                            <span className="flex h-3 w-3 relative">
+                                <span
+                                    className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                            <div
+                                className="absolute left-4 top-0 glass-panel px-2 py-1 rounded text-[10px] text-red-300 font-mono whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                                Alert: Delhi Node
+                            </div>
+                        </div>
+                        <div className="absolute top-[60%] left-[70%]">
+                            <span className="flex h-3 w-3 relative">
+                                <span
+                                    className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                            </span>
+                        </div>
+                        <div className="absolute top-[45%] left-[25%]">
+                            <span className="flex h-3 w-3 relative">
+                                <span
+                                    className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                            </span>
+                        </div>
+                        <div
+                            className="absolute -right-4 top-20 glass-panel p-4 rounded-xl shadow-2xl animate-[bounce_4s_infinite]">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div
+                                    className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                                    <span className="material-icons-round text-sm">analytics</span>
+                                </div>
+                                <div>
+                                    <div className="text-[10px] text-gray-400 uppercase font-bold">Predictive Model</div>
+                                    <div className="text-xs text-white font-mono">Flooding Risk: 89%</div>
+                                </div>
+                            </div>
+                            <div className="w-32 h-1 bg-white/10 rounded-full overflow-hidden">
+                                <div className="w-[89%] h-full bg-blue-500"></div>
+                            </div>
+                        </div>
+                        <div
+                            className="absolute -left-4 bottom-20 glass-panel p-4 rounded-xl shadow-2xl animate-[bounce_5s_infinite] delay-700">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div
+                                    className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                    <span className="material-icons-round text-sm">hub</span>
+                                </div>
+                                <div>
+                                    <div className="text-[10px] text-gray-400 uppercase font-bold">Active Agents</div>
+                                    <div className="text-xs text-white font-mono">14,203 Units</div>
+                                </div>
+                            </div>
+                            <div className="flex gap-1 mt-1">
+                                <span className="w-1 h-3 bg-primary rounded-full animate-pulse"></span>
+                                <span className="w-1 h-2 bg-primary/50 rounded-full"></span>
+                                <span className="w-1 h-4 bg-primary/80 rounded-full"></span>
+                                <span className="w-1 h-2 bg-primary/30 rounded-full"></span>
+                                <span className="w-1 h-3 bg-primary/60 rounded-full"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="mt-20 grid grid-cols-2 md:grid-cols-3 gap-8 border-t border-gray-200 dark:border-white/10 pt-8">
+                <div>
+                    <div className="text-3xl font-display font-bold text-gray-900 dark:text-white">99.9%</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400 font-mono mt-1">UPTIME GUARANTEE</div>
+                </div>
+                <div>
+                    <div className="text-3xl font-display font-bold text-gray-900 dark:text-white">50ms</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400 font-mono mt-1">LATENCY RESPONSE</div>
+                </div>
+                <div>
+                    <div className="text-3xl font-display font-bold text-gray-900 dark:text-white">24/7</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400 font-mono mt-1">AUTONOMOUS WATCH</div>
+                </div>
+            </div>
+        </div>
+        <div
+            className="fixed bottom-0 w-full z-40 block md:hidden bg-white/90 dark:bg-surface-dark/90 backdrop-blur border-t border-gray-200 dark:border-white/10 p-4">
+            <a className="w-full flex items-center justify-center px-4 py-3 bg-primary text-white font-medium rounded-lg"
+                href="/dashboard">
+                Launch Control Center
+            </a>
+        </div>
+    </main>
+    <section className="py-20 bg-gray-50 dark:bg-[#08090c] border-t border-gray-200 dark:border-white/5 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-12">
+                <div>
+                    <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 dark:text-white mb-4">Tactical
+                        Capabilities</h2>
+                    <p className="text-gray-600 dark:text-gray-400 max-w-xl">
+                        Our multi-agent infrastructure deploys autonomous units for real-time crisis management and data
+                        acquisition.
+                    </p>
+                </div>
+                <a className="hidden md:flex items-center text-primary font-medium hover:text-primary-glow transition-colors mt-4 md:mt-0"
+                    href="#">
+                    View all capabilities <span className="material-icons-round ml-1">arrow_forward</span>
+                </a>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div
+                    className="group bg-white dark:bg-surface-dark rounded-2xl p-8 border border-gray-200 dark:border-white/5 hover:border-primary/50 transition-colors cursor-pointer relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <span className="material-icons-round text-8xl text-primary">visibility</span>
+                    </div>
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-6">
+                        <span className="material-icons-round">radar</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Aerial Surveillance</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                        Deploy drone swarms for high-resolution topographic mapping and crowd density analysis in
+                        real-time.
+                    </p>
+                </div>
+                <div
+                    className="group bg-white dark:bg-surface-dark rounded-2xl p-8 border border-gray-200 dark:border-white/5 hover:border-primary/50 transition-colors cursor-pointer relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <span className="material-icons-round text-8xl text-primary">psychology</span>
+                    </div>
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-6">
+                        <span className="material-icons-round">memory</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Predictive AI</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                        Machine learning models that predict infrastructure failures up to 72 hours before they occur.
+                    </p>
+                </div>
+                <div
+                    className="group bg-white dark:bg-surface-dark rounded-2xl p-8 border border-gray-200 dark:border-white/5 hover:border-primary/50 transition-colors cursor-pointer relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <span className="material-icons-round text-8xl text-primary">security</span>
+                    </div>
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-6">
+                        <span className="material-icons-round">shield</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Crisis Lockdown</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                        Automated protocol enforcement for critical infrastructure zones during state emergencies.
+                    </p>
+                </div>
+            </div>
+            <div className="mt-8 md:hidden">
+                <a className="flex items-center text-primary font-medium hover:text-primary-glow transition-colors"
+                    href="#">
+                    View all capabilities <span className="material-icons-round ml-1">arrow_forward</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    
+    
+
+        </div>
+    );
+}
